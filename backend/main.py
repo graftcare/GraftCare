@@ -1142,7 +1142,7 @@ async def create_new_sale(sale: SalesModel):
 # STATIC FILES
 # ============================================================================
 
-@app.get("/")
+@app.get("/", methods=["GET", "HEAD"])
 async def serve_index():
     """Serve graftcare.html"""
     return FileResponse(Path(__file__).parent.parent / "graftcare.html")
