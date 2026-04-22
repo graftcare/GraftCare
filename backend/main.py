@@ -14,7 +14,7 @@ from datetime import datetime, date
 from uuid import uuid4
 from dotenv import load_dotenv
 
-from .supabase_client import (
+from backend.supabase_client import (
     get_vendors, create_vendor, update_vendor, delete_vendor, get_vendor_by_gstin, get_vendor_by_phone, get_vendor_by_id,
     get_products, create_product, update_product, delete_product, get_product_by_id,
     get_customers, create_customer, update_customer, delete_customer, get_customer_by_id, get_customer_by_phone, get_customer_by_gstin,
@@ -1142,7 +1142,7 @@ async def create_new_sale(sale: SalesModel):
 # STATIC FILES
 # ============================================================================
 
-@app.get("/", methods=["GET", "HEAD"])
+@app.get("/")
 async def serve_index():
     """Serve graftcare.html"""
     return FileResponse(Path(__file__).parent.parent / "graftcare.html")
