@@ -1,0 +1,249 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                           SCHEMA BEFORE vs AFTER                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ BEFORE: Normalized Structure (Multiple Tables)                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+DRAFTS Table
+┌─────────────────────────────────────────┐
+│ id                                      │
+│ customer_id → customers                 │
+│ subtotal                                │
+│ total_gst                               │
+│ discount_amount                         │
+│ grand_total                             │
+│ notes                                   │
+│ created_at, updated_at                  │
+└─────────────────────────────────────────┘
+           ↓ (1-to-many)
+DRAFT_ITEMS Table
+┌─────────────────────────────────────────┐
+│ id                                      │
+│ draft_id                                │
+│ product_id → products                   │
+│ batch                                   │
+│ expiry                                  │
+│ qty                                     │
+│ mrp, sale_rate, discount, gst           │
+├─────────────────────────────────────────┤
+│ Rows: One row per item per draft        │
+└─────────────────────────────────────────┘
+
+INVOICES Table
+┌─────────────────────────────────────────┐
+│ id                                      │
+│ customer_id → customers                 │
+│ invoice_date                            │
+│ subtotal                                │
+│ total_gst                               │
+│ discount_amount                         │
+│ grand_total                             │
+│ payment_mode, notes                     │
+│ created_at, updated_at                  │
+└─────────────────────────────────────────┘
+           ↓ (1-to-many)
+INVOICE_ITEMS Table
+┌─────────────────────────────────────────┐
+│ id                                      │
+│ invoice_id                              │
+│ product_id → products                   │
+│ batch, expiry, qty                      │
+│ mrp, sale_rate, discount, gst           │
+├─────────────────────────────────────────┤
+│ Rows: One row per item per invoice      │
+└─────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ AFTER: Denormalized Structure (JSONB Items)                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+DRAFTS Table (Single table, no item table needed!)
+┌──────────────────────────────────────────────────────────┐
+│ ⬜ Core Fields                                           │
+│    id                                                    │
+│    customer_id (NOW NULLABLE) → customers               │
+│    created_at, updated_at                               │
+│                                                          │
+│ ⬜ Type & Counter                                        │
+│    type ('retailer' or 'patient')                       │
+│    draft_counter (auto-increment per customer)          │
+│                                                          │
+│ ⬜ Common Customer Fields                                │
+│    customer_name, customer_phone, customer_address      │
+│    customer_city, customer_pincode, customer_state      │
+│    customer_door_number                                 │
+│                                                          │
+│ ⬜ Retailer-Specific Fields                              │
+│    customer_gstin, customer_dl1, customer_dl2           │
+│                                                          │
+│ ⬜ Patient-Specific Fields                               │
+│    customer_age, customer_gender                        │
+│    customer_doctor_name, customer_hospital_name         │
+│    customer_doctor_phone                                │
+│    customer_is_member, customer_member_id               │
+│                                                          │
+│ ⬜ Totals                                                │
+│    subtotal, total_gst, discount_amount, grand_total    │
+│    notes                                                │
+│                                                          │
+│ ⬜ NEW: Items as JSONB Array!                            │
+│    items: [                                             │
+│      {                                                  │
+│        product_id, batch, expiry, qty,                  │
+│        mrp, sale_rate, discount,                        │
+│        cgst, sgst  ← NEW: Separate CGST/SGST!          │
+│      },                                                 │
+│      { ... more items ... }                             │
+│    ]                                                    │
+└──────────────────────────────────────────────────────────┘
+    ✨ ONE table instead of TWO
+    ✨ NO item rows, just JSONB array
+    ✨ All customer data together
+    ✨ Better for smart lookup by phone/GSTIN
+
+
+INVOICES Table (Same structure, with invoice_no)
+┌──────────────────────────────────────────────────────────┐
+│ ⬜ Core Fields                                           │
+│    id, customer_id → customers                          │
+│    invoice_no (generated: INV-YYYYMMDD-XXXX)            │
+│    invoice_date                                         │
+│    created_at, updated_at                               │
+│                                                          │
+│ ⬜ Type                                                  │
+│    type ('retailer' or 'patient')                       │
+│                                                          │
+│ ⬜ Denormalized Customer Details (copied from draft)     │
+│    customer_name, customer_phone, customer_address      │
+│    customer_city, customer_pincode, customer_state      │
+│    customer_door_number                                 │
+│    customer_gstin, customer_dl1, customer_dl2           │
+│    customer_age, customer_gender                        │
+│    customer_doctor_name, customer_hospital_name         │
+│    customer_doctor_phone                                │
+│    customer_is_member, customer_member_id               │
+│                                                          │
+│ ⬜ Totals                                                │
+│    subtotal, total_gst, discount_amount, grand_total    │
+│    payment_mode, notes                                  │
+│                                                          │
+│ ⬜ Items as JSONB Array                                 │
+│    items: [ { product_id, batch, qty, cgst, sgst, ... } ]│
+└──────────────────────────────────────────────────────────┘
+    ✨ ONE table instead of TWO
+    ✨ Complete invoice snapshot (no lookups needed)
+    ✨ Can query history without joins
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ DELETED TABLES (No longer needed)                                            │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+❌ draft_items (items now in drafts.items JSONB)
+❌ proforma_items (items now in drafts.items JSONB)
+❌ invoice_items (items now in invoices.items JSONB)
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ KEY DIFFERENCES                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────┬──────────────────────┬──────────────────────────────────┐
+│ Feature            │ BEFORE               │ AFTER                            │
+├────────────────────┼──────────────────────┼──────────────────────────────────┤
+│ Customer Data      │ In customers table   │ Denormalized in draft/invoice    │
+│                    │ (reference only)     │ (copy + reference)               │
+├────────────────────┼──────────────────────┼──────────────────────────────────┤
+│ Items Storage      │ Separate table       │ JSONB array in same row          │
+│                    │ (joins required)     │ (no joins needed)                │
+├────────────────────┼──────────────────────┼──────────────────────────────────┤
+│ GST Format         │ Single: gst: 9       │ Split: cgst: 4.5, sgst: 4.5     │
+│                    │ (split in logic)     │ (stored separately)              │
+├────────────────────┼──────────────────────┼──────────────────────────────────┤
+│ Customer ID        │ Required             │ Optional (NOT NULL → nullable)   │
+│                    │ (must exist)         │ (for draft-only customers)       │
+├────────────────────┼──────────────────────┼──────────────────────────────────┤
+│ Draft Lookup       │ By customer_id       │ By phone or GSTIN (smart!)       │
+│                    │ (requires customer)  │ (even without customer)          │
+├────────────────────┼──────────────────────┼──────────────────────────────────┤
+│ Invoice Complete   │ Multiple queries     │ Single query (all data there)    │
+│ View               │ (join items)         │ (items in JSONB)                │
+└────────────────────┴──────────────────────┴──────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ EXAMPLE: Creating a Draft                                                    │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+BEFORE (3 inserts):
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. INSERT INTO customers (name, phone, gstin) ...                           │
+│    → Returns customer_id = ABC123                                           │
+│                                                                             │
+│ 2. INSERT INTO drafts (customer_id, subtotal, total_gst, ...)              │
+│    VALUES (ABC123, 1000, 180, ...)                                        │
+│    → Returns draft_id = DRAFT001                                           │
+│                                                                             │
+│ 3. INSERT INTO draft_items (draft_id, product_id, qty, gst, ...)          │
+│    VALUES (DRAFT001, PROD001, 10, 9, ...)                                 │
+│    VALUES (DRAFT001, PROD002, 5, 5, ...)                                  │
+│                                                                             │
+│ Result: 3 database roundtrips, multiple tables updated                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+AFTER (1 insert):
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. INSERT INTO drafts (                                                     │
+│      type, customer_name, customer_phone, customer_gstin,                  │
+│      customer_address, ...,                                                │
+│      subtotal, total_gst, discount_amount, grand_total,                   │
+│      items: [                                                              │
+│        { product_id: PROD001, qty: 10, cgst: 4.5, sgst: 4.5, ... },       │
+│        { product_id: PROD002, qty: 5, cgst: 2.5, sgst: 2.5, ... }         │
+│      ]                                                                      │
+│    )                                                                        │
+│    → Returns draft_id = DRAFT001                                           │
+│                                                                             │
+│ Result: 1 database insert, everything in one row!                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Benefits:
+✅ Single query instead of 3
+✅ Atomic operation (all or nothing)
+✅ No orphaned customers
+✅ All data together for smart lookup
+✅ Items always with draft (consistency)
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ COLUMN COUNT COMPARISON                                                      │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+DRAFTS:
+  BEFORE: 8 columns
+  AFTER:  26 columns (8 + 17 customer + 1 items JSONB)
+
+DRAFT_ITEMS:
+  BEFORE: ~10 columns per row (hundreds of rows possible)
+  AFTER:  DELETED - items embedded in drafts
+
+INVOICES:
+  BEFORE: 9 columns
+  AFTER:  28 columns (9 + 17 customer + 1 items JSONB + 1 invoice_no)
+
+INVOICE_ITEMS:
+  BEFORE: ~10 columns per row (hundreds of rows possible)
+  AFTER:  DELETED - items embedded in invoices
+
+TOTAL TABLES:
+  BEFORE: drafts, draft_items, proformas, proforma_items, invoices, invoice_items
+  AFTER:  drafts, invoices (cleaner!)
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ACTION: Copy the SQL from supabase_migration.sql and run in Supabase        ║
+║ This will make all these changes automatically!                             ║
+╚══════════════════════════════════════════════════════════════════════════════╝

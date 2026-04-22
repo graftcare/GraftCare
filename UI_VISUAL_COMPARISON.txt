@@ -1,0 +1,206 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                      UI CHANGES - VISUAL COMPARISON                          ║
+║         CGST/SGST Fields Visible for Every State (Not Just Telangana)        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ BEFORE: State-Dependent Display                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+When Seller State = Telangana:
+┌────────────────────────────────────────┐
+│ Customer State: Telangana (INTRA)      │  ← Green badge
+├────────────────────────────────────────┤
+│ Product 1                              │
+│ ├─ Qty:      10                        │
+│ ├─ Rate:     100                       │
+│ ├─ CGST:     4.5%    ✓ Visible        │
+│ ├─ SGST:     4.5%    ✓ Visible        │
+│ └─ IGST:     —       ✗ Hidden         │
+├────────────────────────────────────────┤
+│ Summary:                               │
+│ ├─ Subtotal:    1000                   │
+│ ├─ CGST:        +₹225                  │  ← Shown
+│ ├─ SGST:        +₹225                  │  ← Shown
+│ └─ IGST:        —                      │  ← Hidden
+└────────────────────────────────────────┘
+
+When Seller State ≠ Telangana (e.g., Karnataka):
+┌────────────────────────────────────────┐
+│ Customer State: Karnataka (INTER-STATE)│  ← Blue badge
+├────────────────────────────────────────┤
+│ Product 1                              │
+│ ├─ Qty:      10                        │
+│ ├─ Rate:     100                       │
+│ ├─ CGST:     —       ✗ Hidden         │  ← Not shown!
+│ ├─ SGST:     —       ✗ Hidden         │  ← Not shown!
+│ └─ IGST:     9%      ✓ Visible        │  ← Different field
+├────────────────────────────────────────┤
+│ Summary:                               │
+│ ├─ Subtotal:    1000                   │
+│ ├─ CGST:        —                      │  ← Hidden
+│ ├─ SGST:        —                      │  ← Hidden
+│ └─ IGST:        +₹900                  │  ← Shown instead
+└────────────────────────────────────────┘
+
+PROBLEM: Different UI for different states → Confusing!
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ AFTER: Consistent Display for All States                                     │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+When Seller State = Telangana:
+┌────────────────────────────────────────┐
+│ Customer State: Telangana (INTRA)      │
+├────────────────────────────────────────┤
+│ Product 1                              │
+│ ├─ Qty:      10                        │
+│ ├─ Rate:     100                       │
+│ ├─ CGST:     4.5%    ✓ Always shown   │
+│ ├─ SGST:     4.5%    ✓ Always shown   │
+│ └─ IGST:     —       ✗ Never shown    │
+├────────────────────────────────────────┤
+│ Summary:                               │
+│ ├─ Subtotal:    1000                   │
+│ ├─ CGST:        +₹225                  │  ← Shown
+│ ├─ SGST:        +₹225                  │  ← Shown
+│ └─ IGST:        —                      │  ← Hidden
+└────────────────────────────────────────┘
+
+When Seller State ≠ Telangana (e.g., Karnataka):
+┌────────────────────────────────────────┐
+│ Customer State: Karnataka (INTER-STATE)│
+├────────────────────────────────────────┤
+│ Product 1                              │
+│ ├─ Qty:      10                        │
+│ ├─ Rate:     100                       │
+│ ├─ CGST:     0%      ✓ Always shown   │  ← Same field!
+│ ├─ SGST:     0%      ✓ Always shown   │  ← Same field!
+│ └─ IGST:     —       ✗ Never shown    │  ← Never used
+├────────────────────────────────────────┤
+│ Summary:                               │
+│ ├─ Subtotal:    1000                   │
+│ ├─ CGST:        +₹0                    │  ← Shown
+│ ├─ SGST:        +₹0                    │  ← Shown
+│ └─ IGST:        —                      │  ← Hidden
+└────────────────────────────────────────┘
+
+SOLUTION: Same UI for every state → Consistent & Simple!
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ FORM ROW - Item Input Fields                                                 │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+BEFORE:
+┌────────────────────────────────────────────────────────────────────────┐
+│ Product│ Qty│ Rate │ Amount │ Disc│ GST%  │ Amount        │ Delete     │
+│        │    │      │        │     │ ===== │ ============= │            │
+│        │    │      │        │     │ (Single field, changes based on state)│
+│        │    │      │        │     │       │               │            │
+│        │    │      │        │     │ For Telangana: Splits to CGST/SGST  │
+│        │    │      │        │     │ For Other: Shows as IGST             │
+└────────────────────────────────────────────────────────────────────────────┘
+
+
+AFTER:
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Product│ Qty│ Rate │ Amount │ Disc│ CGST%│ SGST%│ Total GST │ Delete        │
+│        │    │      │        │     │===== │===== │=========  │               │
+│        │    │      │        │     │ 4.5  │ 4.5  │    9%     │               │
+│        │    │      │        │     │ (always shown) │         │               │
+│        │    │      │        │     │      │      │ (calculated sum) │        │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ INVOICE DISPLAY - Item Table                                                 │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+BEFORE - For Telangana:
+┌───────────┬──────┬────────┬──────┬──────┬──────┐
+│ Product   │ Qty  │ Rate   │ Amt  │ CGST │ SGST │
+├───────────┼──────┼────────┼──────┼──────┼──────┤
+│ Medicine A│  10  │ 100.00 │ 950  │  90  │  90  │
+│ Medicine B│   5  │  50.00 │ 475  │  45  │  45  │
+└───────────┴──────┴────────┴──────┴──────┴──────┘
+
+BEFORE - For Other States:
+┌───────────┬──────┬────────┬──────┬──────┐
+│ Product   │ Qty  │ Rate   │ Amt  │ IGST │
+├───────────┼──────┼────────┼──────┼──────┤
+│ Medicine A│  10  │ 100.00 │ 950  │ 180  │
+│ Medicine B│   5  │  50.00 │ 475  │  90  │
+└───────────┴──────┴────────┴──────┴──────┘
+
+
+AFTER - For All States:
+┌───────────┬──────┬────────┬──────┬──────┬────┬──────┬────┐
+│ Product   │ Qty  │ Rate   │ Amt  │CGST%│CGST│SGST%│SGST│
+├───────────┼──────┼────────┼──────┼──────┼────┼──────┼────┤
+│ Medicine A│  10  │ 100.00 │ 950  │ 4.5 │ 90 │ 4.5 │ 90 │
+│ Medicine B│   5  │  50.00 │ 475  │ 4.5 │ 45 │ 4.5 │ 45 │
+└───────────┴──────┴────────┴──────┴──────┴────┴──────┴────┘
+
+Now CGST and SGST are always visible!
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ GST SUMMARY TABLE IN INVOICE                                                 │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+BEFORE - For Telangana:
+┌──────┬─────────┬──────┬──────┐
+│ GST% │ TAXABLE │ CGST │ SGST │
+├──────┼─────────┼──────┼──────┤
+│ 9%   │ 1900    │ 180  │ 180  │
+└──────┴─────────┴──────┴──────┘
+
+BEFORE - For Other States:
+┌──────┬─────────┬──────┐
+│ GST% │ TAXABLE │ IGST │
+├──────┼─────────┼──────┤
+│ 9%   │ 1900    │ 360  │
+└──────┴─────────┴──────┘
+
+
+AFTER - For All States:
+┌──────┬─────────┬──────┬────┬──────┬────┐
+│ GST% │ TAXABLE │CGST% │CGST│SGST% │SGST│
+├──────┼─────────┼──────┼────┼──────┼────┤
+│ 9%   │ 1900    │ 4.5  │180 │ 4.5  │180 │
+└──────┴─────────┴──────┴────┴──────┴────┘
+
+CGST and SGST columns always present!
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ SUMMARY - Key Changes                                                        │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────┬──────────────────┬──────────────────┐
+│ Component           │ BEFORE           │ AFTER            │
+├─────────────────────┼──────────────────┼──────────────────┤
+│ Form Input Fields   │ 1 field (GST%)   │ 2 fields (CGST%, SGST%)  │
+│                     │ Changes per state│ Always same      │
+├─────────────────────┼──────────────────┼──────────────────┤
+│ Item Row Display    │ CGST/SGST OR IGST│ Always CGST/SGST │
+│                     │ Depends on state │ Never IGST       │
+├─────────────────────┼──────────────────┼──────────────────┤
+│ Invoice Display     │ Different columns│ Always CGST/SGST │
+│                     │ per state        │ Consistent       │
+├─────────────────────┼──────────────────┼──────────────────┤
+│ GST Summary Table   │ CGST/SGST OR IGST│ Always CGST/SGST │
+│                     │ Depends on state │ With percentages │
+├─────────────────────┼──────────────────┼──────────────────┤
+│ User Experience     │ Confusing - need │ Simple & clear   │
+│                     │ to understand    │ Same everywhere  │
+│                     │ intra/inter-state│                  │
+└─────────────────────┴──────────────────┴──────────────────┘
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ RESULT: Unified, consistent CGST/SGST input pattern across all Indian states║
+╚══════════════════════════════════════════════════════════════════════════════╝

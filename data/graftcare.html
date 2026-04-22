@@ -1,0 +1,3099 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script>
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
+      console.error('SYNTAX ERROR:', msg, 'at line', lineNo, 'col', columnNo);
+      document.body.innerHTML = '<h1>JavaScript Syntax Error</h1><p>' + msg + '</p><p>Line: ' + lineNo + ', Column: ' + columnNo + '</p><pre>' + (error ? error.stack : 'No stack') + '</pre>';
+      return false;
+    };
+
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>Graft Care Pharma</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="main.css">
+  <style>
+    :root {
+      --bg: #f5f4f0;
+      --surface: #fff;
+      --surface2: #f0efea;
+      --surface3: #e8e6de;
+      --border: #ddd9ce;
+      --border2: #c8c4ba;
+      --text: #1a1916;
+      --text2: #5c5a54;
+      --text3: #9b9890;
+      --green: #2d6a4f;
+      --green-bg: #e8f5ee;
+      --green-text: #1a4a32;
+      --blue: #1d4e89;
+      --blue-bg: #e8f0fb;
+
+      --blue-text: #0d2d54;
+      --amber: #b5651d;
+      --amber-bg: #fdf0e0;
+      --amber-text: #7a3e0a;
+      --red: #c0392b;
+      --red-bg: #fde8e6;
+      --red-text: #7a1d14;
+      --teal: #0f6e56;
+      --teal-bg: #e1f5ee;
+      --teal-text: #085041;
+      --purple: #6c3483;
+      --purple-bg: #f3e8fb;
+      --purple-text: #4a1a6a;
+      --r: 8px;
+      --rl: 12px;
+      --rxl: 16px;
+      --font: 'DM Sans', sans-serif;
+      --mono: 'DM Mono', monospace;
+      --sw: 224px;
+      --nh: 56px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent
+    }
+
+    html,
+    body {
+      height: 100%;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5
+    }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none
+    }
+
+    input[type=number] {
+      -moz-appearance: textfield
+    }
+
+    button {
+      font-family: var(--font);
+      cursor: pointer
+    }
+
+    #login-screen {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #1a2f1f 0%, #0d1f12 50%, #162818 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px
+    }
+
+    #login-screen.hidden {
+      display: none
+    }
+
+    .login-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 32px 80px rgba(0, 0, 0, .5)
+    }
+
+    .login-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px
+    }
+
+    .login-logo-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--green)
+    }
+
+    .login-logo-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text)
+    }
+
+    .login-logo-sub {
+      font-size: 12px;
+      color: var(--text3);
+      margin-top: 1px
+    }
+
+    .login-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px
+    }
+
+    .login-sub {
+      font-size: 13px;
+      color: var(--text3);
+      margin-bottom: 26px
+    }
+
+    .login-fld {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 14px
+    }
+
+    .login-fld label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text2)
+    }
+
+    .login-fld input {
+      font-size: 14px;
+      padding: 11px 13px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--r);
+      color: var(--text);
+      width: 100%;
+      outline: none;
+      transition: border-color .15s;
+      background: var(--surface2)
+    }
+
+    .login-fld input:focus {
+      border-color: var(--green);
+      background: #fff
+    }
+
+    .login-btn {
+      width: 100%;
+
+      padding: 12px;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: var(--r);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: opacity .15s
+    }
+
+    .login-btn:hover {
+      opacity: .88
+    }
+
+    .login-err {
+      background: var(--red-bg);
+      color: var(--red-text);
+      border: 1px solid #f0a090;
+      border-radius: var(--r);
+      padding: 9px 12px;
+      font-size: 12.5px;
+      font-weight: 500;
+      display: none;
+      margin-top: 10px
+    }
+
+    .login-err.show {
+      display: block
+    }
+
+    .login-hint {
+      font-size: 11px;
+      color: var(--text3);
+      text-align: center;
+      margin-top: 14px
+    }
+
+    .sa-badge {
+      display: inline-block;
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #6c3483, #4a1a6a);
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: .04em;
+      margin-left: 4px;
+      vertical-align: middle
+    }
+
+    #admin-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .6);
+      z-index: 8000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px
+    }
+
+    #admin-modal.show {
+      display: flex !important
+    }
+
+    .admin-modal-box {
+      background: var(--surface);
+      border-radius: var(--rxl);
+      padding: 28px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, .2)
+    }
+
+    .admin-modal-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .admin-modal-sub {
+      font-size: 12px;
+      color: var(--text3);
+      margin-bottom: 20px
+    }
+
+    .admin-modal-err {
+      background: var(--red-bg);
+      color: var(--red-text);
+      border-radius: var(--r);
+      padding: 8px 11px;
+      font-size: 12px;
+      font-weight: 500;
+      display: none;
+      margin-bottom: 10px
+    }
+
+    .admin-modal-err.show {
+      display: block
+    }
+
+    #app {
+      display: flex;
+      height: 100vh;
+      overflow: hidden
+    }
+
+    #sb {
+      width: var(--sw);
+      background: linear-gradient(135deg, #2d6a4f 0%, #40916c 50%, #52b788 100%);
+      border-radius: 0 60px 60px 0;
+      border-right: none;
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: transform .25s;
+      z-index: 100
+    }
+
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+      min-height: 0
+    }
+
+    #topbar {
+      height: var(--nh);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      gap: 10px;
+      flex-shrink: 0
+    }
+
+    #content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      min-height: 0
+    }
+
+    .sb-logo {
+      padding: 16px 14px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15)
+    }
+
+    .sb-logo-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 7px
+    }
+
+    .sb-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ffffff;
+      flex-shrink: 0
+    }
+
+    .sb-sub {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-top: 1px;
+      padding-left: 15px
+    }
+
+    .sb-nav {
+      flex: 1;
+      padding: 10px 7px;
+      overflow-y: auto
+    }
+
+    .sb-sec {
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.6);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 14px 10px 8px;
+      margin-top: 4px
+    }
+
+    .sb-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 18px;
+      border-radius: 35px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.85);
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      transition: all 0.3s ease;
+      margin-bottom: 6px
+    }
+
+    .sb-btn:hover {
+      background: #ffffff;
+      color: #1b4332;
+      transform: translateX(4px)
+    }
+
+    .sb-btn.on {
+      background: #ffffff;
+      color: #1b4332;
+      font-weight: 600
+    }
+
+    .sb-btn.on:hover {
+      background: #ffffff;
+      color: #1b4332;
+      transform: none
+    }
+
+    .sb-btn svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      opacity: 0.8;
+      transition: all 0.3s ease
+    }
+
+    .sb-btn.on svg,
+    .sb-btn:hover svg {
+      opacity: 1
+    }
+
+    .sb-foot {
+      padding: 16px 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .sb-user {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-left: 4px
+    }
+
+    .sb-logout {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #000;
+      background: rgba(255, 255, 255, 0.85);
+      border: none;
+      cursor: pointer;
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-right: 15px;
+      transition: all 0.2s ease
+    }
+
+    .sb-logout:hover {
+      background: #ffffff;
+      transform: scale(1.05)
+    }
+
+    #mb {
+      display: none;
+      background: none;
+      border: none;
+      padding: 8px;
+      border-radius: var(--r);
+      color: var(--text2)
+    }
+
+    .tb-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      flex: 1
+    }
+
+    .tb-badge {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      background: var(--green-bg);
+      color: var(--green-text);
+      font-weight: 500
+    }
+
+    .tb-conn {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px
+    }
+
+    .tb-conn.ok {
+      background: var(--green-bg);
+      color: var(--green-text)
+    }
+
+    .tb-conn.err {
+      background: var(--red-bg);
+      color: var(--red-text)
+    }
+
+    .page {
+      display: none !important
+    }
+
+    .page.on {
+      display: block !important
+    }
+
+    .pg-title {
+      font-size: 19px;
+      font-weight: 600;
+      margin-bottom: 3px
+    }
+
+    .pg-sub {
+      font-size: 12px;
+      color: var(--text3);
+      margin-bottom: 18px
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      padding: 18px;
+      margin-bottom: 14px
+    }
+
+    .card-t {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 18px
+    }
+
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      padding: 14px
+    }
+
+    .stat-l {
+      font-size: 11px;
+      color: var(--text3);
+      margin-bottom: 5px
+    }
+
+    .stat-v {
+      font-size: 22px;
+      font-weight: 600
+    }
+
+    .stat-v.g {
+      color: var(--green)
+    }
+
+    .stat-v.a {
+      color: var(--amber)
+    }
+
+    .stat-v.r {
+      color: var(--red)
+    }
+
+    .stat-v.b {
+      color: var(--blue)
+    }
+
+    .g2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px
+    }
+
+    .g3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px
+    }
+
+    .g4 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 10px
+    }
+
+    .fld {
+      display: flex;
+      flex-direction: column;
+      gap: 4px
+    }
+
+    .fld label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text2)
+    }
+
+    .fld input,
+    .fld select,
+    .fld textarea {
+      font-size: 12.5px;
+      padding: 7px 9px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      color: var(--text);
+      width: 100%;
+      transition: border-color .12s, background .12s;
+      outline: none
+    }
+
+    .fld input:focus,
+    .fld select:focus {
+      border-color: var(--green);
+      background: var(--surface)
+    }
+
+    .fld input[readonly] {
+      opacity: .5;
+      cursor: not-allowed
+    }
+
+    .fld textarea {
+      resize: vertical;
+      min-height: 60px
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 15px;
+      border-radius: var(--r);
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all .12s;
+      font-family: var(--font)
+    }
+
+    .pt-tab {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all .2s;
+      border: 1px solid var(--border);
+    }
+
+    .pt-tab.on {
+      background: var(--purple-bg) !important;
+      color: var(--purple-text) !important;
+      border-color: var(--purple) !important;
+      font-weight: 600;
+    }
+
+    .pt-filter-ui {
+      animation: ptFadeIn 0.2s ease-in-out;
+    }
+
+    @keyframes ptFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .btn-p {
+      background: var(--green);
+      color: #fff;
+      border-color: var(--green)
+    }
+
+    .btn-p:hover {
+      opacity: .88
+    }
+
+    .btn-g {
+      background: transparent;
+      color: var(--text2);
+      border-color: var(--border)
+    }
+
+    .btn-g:hover {
+      background: var(--surface2);
+      color: var(--text)
+    }
+
+    .btn-b {
+      background: var(--blue-bg);
+      color: var(--blue-text);
+      border-color: var(--blue-bg)
+    }
+
+    .btn-r {
+      background: var(--red-bg);
+      color: var(--red-text);
+      border-color: var(--red-bg)
+    }
+
+    .btn-amber {
+      background: var(--amber-bg);
+      color: var(--amber-text);
+      border-color: var(--amber-bg)
+    }
+
+    .btn-purple {
+      background: var(--purple-bg);
+      color: var(--purple-text);
+      border-color: var(--purple-bg)
+    }
+
+    .btn-sm {
+      padding: 4px 10px;
+      font-size: 11px
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px
+    }
+
+    .type-grp {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px
+    }
+
+    .tc {
+      flex: 1;
+      padding: 13px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--rl);
+      cursor: pointer;
+      background: var(--surface2);
+      transition: all .12s
+    }
+
+    .tc.on-r {
+      border-color: var(--blue);
+      background: var(--blue-bg)
+    }
+
+    .tc.on-p {
+      border-color: var(--teal);
+      background: var(--teal-bg)
+    }
+
+    .tc-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      border: 2px solid var(--border2);
+      display: inline-block;
+      margin-right: 6px;
+      vertical-align: middle;
+      background: var(--surface)
+    }
+
+    .tc.on-r .tc-dot {
+      background: var(--blue);
+      border-color: var(--blue)
+    }
+
+    .tc.on-p .tc-dot {
+      background: var(--teal);
+      border-color: var(--teal)
+    }
+
+    .tc-lbl {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text)
+    }
+
+    .tc.on-r .tc-lbl {
+      color: var(--blue-text)
+    }
+
+    .tc.on-p .tc-lbl {
+      color: var(--teal-text)
+    }
+
+    .tc-sub {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 3px;
+      padding-left: 17px
+    }
+
+    .li-wrap {
+      overflow-x: auto;
+      margin-bottom: 8px
+    }
+
+    .li-tbl {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px
+    }
+
+    .li-tbl th {
+      padding: 7px 5px;
+      background: var(--surface2);
+      color: var(--text3);
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      white-space: nowrap;
+      font-size: 10.5px
+    }
+
+    .li-tbl td {
+      padding: 4px 3px;
+      border-bottom: 1px solid var(--surface2);
+      vertical-align: middle
+    }
+
+    .li-tbl input,
+    .li-tbl select {
+      font-size: 11.5px;
+      padding: 5px 6px;
+      background: var(--surface2);
+      border: 1px solid transparent;
+      border-radius: 5px;
+      color: var(--text);
+      width: 100%;
+      transition: all .1s
+    }
+
+    .li-tbl input:focus,
+    .li-tbl select:focus {
+      border-color: var(--green);
+      outline: none;
+      background: var(--surface)
+    }
+
+    .li-tbl input[readonly] {
+      opacity: .45;
+      cursor: not-allowed
+    }
+
+    .exp-c {
+      display: flex;
+      align-items: center;
+      gap: 2px
+    }
+
+    .exp-c input {
+      text-align: center
+    }
+
+    .exp-sep {
+      font-size: 11px;
+      color: var(--text3)
+    }
+
+    .del-btn {
+      padding: 4px 8px;
+      font-size: 11px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: none;
+      color: var(--red);
+      cursor: pointer
+    }
+
+    .del-btn:hover {
+      background: var(--red-bg)
+    }
+
+    .row-calc {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text);
+      text-align: right;
+      white-space: nowrap;
+      padding: 0 5px
+    }
+
+    .ac-wrap {
+      position: relative;
+      width: 100%
+    }
+
+    .ac-inp {
+      font-size: 11.5px;
+      padding: 5px 6px;
+      background: var(--surface2);
+      border: 1px solid transparent;
+      border-radius: 5px;
+      color: var(--text);
+      width: 100%
+    }
+
+    .ac-inp:focus {
+      border-color: var(--green);
+      outline: none;
+      background: var(--surface)
+    }
+
+    .ac-drop-fixed {
+      position: fixed;
+      z-index: 9000;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: var(--rl);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, .18);
+      min-width: 260px;
+      max-height: 220px;
+      overflow-y: auto;
+      display: none
+    }
+
+    .ac-drop-fixed.show {
+      display: block
+    }
+
+    .prod-ac-wrap {
+      position: relative;
+      display: inline-block;
+      width: 100%
+    }
+
+    .prod-ac-inp {
+      font-size: 11.5px;
+      padding: 5px 6px;
+      background: var(--surface2);
+      border: 1px solid transparent;
+      border-radius: 5px;
+      color: var(--text);
+      width: 100%
+    }
+
+    .prod-ac-inp:focus {
+      border-color: var(--green);
+      outline: none;
+      background: var(--surface)
+    }
+
+    .prod-ac-drop {
+      position: fixed;
+      z-index: 9000;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: var(--rl);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .22);
+      min-width: 320px;
+      max-height: 280px;
+      overflow-y: auto;
+      display: none;
+      white-space: normal
+    }
+
+    .prod-ac-drop.show {
+      display: block
+    }
+
+    .ac-item {
+      padding: 11px 13px;
+      cursor: pointer;
+      border-bottom: .5px solid var(--border)
+    }
+
+    .ac-item:last-child {
+      border-bottom: none
+    }
+
+    .ac-item:hover {
+      background: var(--surface2)
+    }
+
+    .ac-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text)
+    }
+
+    .ac-sub {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 4px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap
+    }
+
+    .ac-sub span {
+      background: var(--surface2);
+      padding: 1px 5px;
+      border-radius: 4px;
+      border: .5px solid var(--border)
+    }
+
+    .ac-empty {
+      padding: 10px 11px;
+      font-size: 12px;
+      color: var(--text3);
+      text-align: center
+    }
+
+    .ac-filled {
+      background: #e8f5ee !important
+    }
+
+    .sum-box {
+      background: var(--surface2);
+      border-radius: var(--rl);
+      padding: 14px;
+      margin-top: 10px
+    }
+
+    .sr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      padding: 5px 0;
+      border-bottom: .5px solid var(--border);
+      color: var(--text2)
+    }
+
+    .sr:last-child {
+      border-bottom: none
+    }
+
+    .sr.tot {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      padding-top: 10px;
+      margin-top: 3px
+    }
+
+    .sr-in {
+      display: flex;
+      align-items: center;
+      gap: 5px
+    }
+
+    .sr-in select {
+      font-size: 12px;
+      padding: 4px 6px;
+      width: 52px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      color: var(--text2)
+    }
+
+    .sr-in input {
+      font-size: 13px;
+      padding: 4px 8px;
+      width: 88px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      color: var(--text);
+      text-align: right
+    }
+
+    .charity-row {
+      background: var(--amber-bg);
+      border-radius: var(--r);
+      padding: 9px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 5px 0;
+      border: .5px solid #f0c070
+    }
+
+    .charity-lbl {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--amber-text)
+    }
+
+    .charity-sub {
+      font-size: 10px;
+      color: var(--amber)
+    }
+
+    .charity-in input {
+      font-size: 13px;
+      padding: 4px 8px;
+      width: 88px;
+      background: #fff;
+      border: .5px solid #e8a020;
+      border-radius: var(--r);
+      color: var(--amber-text);
+      text-align: right
+    }
+
+    .bdg {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 20px;
+      font-weight: 500
+    }
+
+    .bdg-g {
+      background: var(--green-bg);
+      color: var(--green-text)
+    }
+
+    .bdg-a {
+      background: var(--amber-bg);
+      color: var(--amber-text)
+    }
+
+    .bdg-b {
+      background: var(--blue-bg);
+      color: var(--blue-text)
+    }
+
+    .bdg-r {
+      background: var(--red-bg);
+      color: var(--red-text)
+    }
+
+    .bdg-t {
+      background: var(--teal-bg);
+      color: var(--teal-text)
+    }
+
+    .bdg-p {
+      background: var(--purple-bg);
+      color: var(--purple-text)
+    }
+
+    .qty-pill {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 500
+    }
+
+    .qty-ok {
+      background: var(--green-bg);
+      color: var(--green-text)
+    }
+
+    .qty-lo {
+      background: var(--amber-bg);
+      color: var(--amber-text)
+    }
+
+    .dt {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px
+    }
+
+    .dt th {
+      padding: 9px 10px;
+      background: var(--surface2);
+      color: var(--text3);
+      font-weight: 500;
+      font-size: 11px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      white-space: nowrap
+    }
+
+    .dt td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--surface2);
+      color: var(--text);
+      vertical-align: middle
+    }
+
+    .dt tr:hover td {
+      background: var(--surface2)
+    }
+
+    .dt tr:last-child td {
+      border-bottom: none
+    }
+
+    .mn {
+      font-family: var(--mono);
+      font-size: 11px
+    }
+
+    .empty {
+      text-align: center;
+      padding: 36px;
+      color: var(--text3);
+      font-size: 13px
+    }
+
+    .alert {
+      padding: 9px 12px;
+      border-radius: var(--r);
+      margin-bottom: 10px;
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .alert-w {
+      background: var(--amber-bg);
+      color: var(--amber-text);
+      border: .5px solid #f0c070
+    }
+
+    .alert-d {
+      background: var(--red-bg);
+      color: var(--red-text);
+      border: .5px solid #f0a090
+    }
+
+    .modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .45);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 16px
+    }
+
+    .modal-bg.show {
+      display: flex !important
+    }
+
+    .modal {
+      background: var(--surface);
+      border-radius: var(--rxl);
+      padding: 22px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, .12)
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 14px
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 18px
+    }
+
+    #ov {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .4);
+      z-index: 99
+    }
+
+    #ov.show {
+      display: block
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none
+    }
+
+    .toast-msg {
+      padding: 11px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all .25s;
+      pointer-events: none;
+      max-width: 320px;
+      line-height: 1.4
+    }
+
+    .toast-msg.show {
+      opacity: 1;
+      transform: translateY(0)
+    }
+
+    .toast-msg.t-green {
+      background: #2d6a4f
+    }
+
+    .toast-msg.t-red {
+      background: #c0392b
+    }
+
+    .toast-msg.t-amber {
+      background: #b5651d
+    }
+
+    .toast-msg.t-blue {
+      background: #1d4e89
+    }
+
+    .toast-msg.t-purple {
+      background: #6c3483
+    }
+
+    .vc {
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      padding: 14px;
+      margin-bottom: 10px
+    }
+
+    .vc-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      padding: 3px 0;
+      border-bottom: .5px solid var(--surface2)
+    }
+
+    .vc-l {
+      color: var(--text3)
+    }
+
+    .vc-r {
+      color: var(--text);
+      font-weight: 500;
+      text-align: right;
+      max-width: 60%
+    }
+
+    .pf-slideshow {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--rl);
+      border: 1px solid var(--border);
+      background: #f5f5f5;
+    }
+
+    .pf-slideshow:hover {
+      background: #f0f0f0;
+    }
+
+    .pf-track {
+      display: flex;
+      transition: transform .35s cubic-bezier(.4, 0, .2, 1)
+    }
+
+    .pf-slide {
+      min-width: 100%;
+      padding: 20px;
+      background: var(--surface);
+      flex-shrink: 0
+    }
+
+    .pf-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: var(--surface2);
+      border-top: 1px solid var(--border)
+    }
+
+    .pf-nav-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 6px 14px;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--text2);
+      transition: all .12s
+    }
+
+    .pf-nav-btn:hover {
+      background: var(--surface);
+      color: var(--text)
+    }
+
+    .pf-nav-btn:disabled {
+      opacity: .35;
+      cursor: not-allowed
+    }
+
+    .pf-dots {
+      display: flex;
+      gap: 6px;
+      align-items: center
+    }
+
+    .pf-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--border2);
+      transition: all .2s;
+      cursor: pointer
+    }
+
+    .pf-dot.on {
+      background: var(--green);
+      width: 20px;
+      border-radius: 4px
+    }
+
+    .pf-counter {
+      font-size: 12px;
+      color: var(--text3)
+    }
+
+    .pf-card-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 8px
+    }
+
+    .pf-card-invno {
+      font-size: 15px;
+      font-weight: 700;
+      font-family: var(--mono);
+      color: var(--text)
+    }
+
+    .pf-card-date {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 2px
+    }
+
+    .pf-card-customer {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text)
+    }
+
+    .pf-card-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 5px
+    }
+
+    .pf-items-tbl {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin: 12px 0
+    }
+
+    .pf-items-tbl th {
+      padding: 5px 8px;
+      background: var(--surface2);
+      color: var(--text3);
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+      text-align: left
+    }
+
+    .pf-items-tbl td {
+      padding: 5px 8px;
+      border-bottom: .5px solid var(--surface2)
+    }
+
+    .pf-totals {
+      background: var(--surface2);
+      border-radius: var(--r);
+      padding: 10px 14px;
+      font-size: 12px
+    }
+
+    .pf-total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 0;
+      border-bottom: .5px solid var(--border);
+      color: var(--text2)
+    }
+
+    .pf-total-row:last-child {
+      border-bottom: none;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text);
+      padding-top: 8px;
+      margin-top: 4px
+    }
+
+    .pf-action-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+      flex-wrap: wrap
+    }
+
+
+    .gs-section {
+      background: var(--green-bg);
+      border: 1px solid #a8d5b8;
+      border-radius: var(--rl);
+      padding: 16px;
+      margin-top: 14px
+    }
+
+    .gs-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px
+    }
+
+    .gs-logo {
+      width: 28px;
+      height: 28px;
+      background: #0f9d58;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0
+    }
+
+    .gs-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--green-text)
+    }
+
+    .gs-sub {
+      font-size: 11px;
+      color: var(--green);
+      margin-top: 1px
+    }
+
+    .gs-progress {
+      height: 4px;
+      background: rgba(0, 0, 0, .1);
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 8px 0
+    }
+
+    .gs-fill {
+      height: 100%;
+      background: var(--green);
+      border-radius: 2px;
+      transition: width .4s
+    }
+
+    .gs-log {
+      background: rgba(255, 255, 255, .6);
+      border-radius: var(--r);
+      padding: 8px 10px;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--green-text);
+      max-height: 100px;
+      overflow-y: auto;
+      margin-top: 8px
+    }
+
+    .inv {
+      background: #fff;
+      color: #000;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 9px;
+      padding: 20px 24px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 210mm;
+      max-width: 100%;
+      margin: 0 auto;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .inv-title {
+      text-align: center;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      margin-bottom: 8px
+    }
+
+    .inv-hdr {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      font-size: 9px;
+      line-height: 1.8
+    }
+
+    .inv-shop {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 2px
+    }
+
+    .inv-right {
+      text-align: right
+    }
+
+    .inv-solid {
+      border: none;
+      border-top: 1.5px solid #000;
+      margin: 4px 0
+    }
+
+    .inv-dash {
+      border: none;
+      border-top: 1px dashed #999;
+      margin: 3px 0
+    }
+
+    .inv-cust {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr 1fr;
+      gap: 10px;
+      font-size: 9px;
+      line-height: 1.9;
+      margin: 4px 0
+    }
+
+    .inv-cr {
+      text-align: right
+    }
+
+    .inv-no-big {
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      word-break: keep-all;
+      overflow-wrap: normal
+    }
+
+    .inv-date-big {
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap
+    }
+
+    .inv-t {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9px;
+      margin: 4px 0
+    }
+
+    .inv-t th {
+      border-top: 1.5px solid #000;
+      border-bottom: 1.5px solid #000;
+      padding: 3px 4px;
+      font-weight: 700;
+      white-space: nowrap;
+      background: #f8f8f8;
+      text-align: left
+    }
+
+    .inv-t td {
+      padding: 2px 4px;
+      border-bottom: .5px solid #e0e0e0;
+      white-space: nowrap
+    }
+
+    .inv-t tr:last-child td {
+      border-bottom: none
+    }
+
+    .inv-note,
+    .inv-charity {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 3px 0
+    }
+
+    .inv-bot {
+      display: flex;
+      gap: 8px;
+      font-size: 9px;
+      margin-top: 4px
+    }
+
+    .inv-bank {
+      flex: 1.3;
+      font-size: 9px;
+      line-height: 1.8
+    }
+
+    .inv-bank b {
+      font-weight: 700
+    }
+
+    .inv-gst-t {
+      flex: 2.2;
+      border-collapse: collapse;
+      font-size: 9px;
+      align-self: flex-start
+    }
+
+    .inv-gst-t td,
+    .inv-gst-t th {
+      padding: 2px 6px;
+      border: .5px solid #ccc;
+      text-align: right;
+      white-space: nowrap
+    }
+
+    .inv-gst-t th {
+      background: #f0f0f0;
+      font-weight: 700;
+      text-align: left
+    }
+
+    .inv-sum {
+      flex: 1.4;
+      text-align: right;
+      font-size: 9.5px;
+      line-height: 2.1
+    }
+
+    .inv-words {
+      font-size: 9px;
+      font-style: italic;
+      padding: 3px 0;
+      border-top: 1px dashed #999;
+      border-bottom: 1px dashed #999;
+      margin: 3px 0
+    }
+
+    .inv-net {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 11px;
+      margin: 3px 0;
+      padding: 2px 0
+    }
+
+    .inv-footer {
+      display: flex;
+      justify-content: space-between;
+      font-size: 8.5px;
+      margin-top: 6px;
+      line-height: 1.6;
+      align-items: flex-end
+    }
+
+    .inv-legal {
+      max-width: 430px;
+      color: #333
+    }
+
+    .inv-ts {
+      font-size: 8.5px;
+      border-top: .5px solid #ccc;
+      padding-top: 3px;
+      margin-top: 5px;
+      display: flex;
+      justify-content: space-between;
+      color: #555
+    }
+
+    .sa-panel {
+      background: linear-gradient(135deg, #f3e8fb, #ede0f5);
+      border: 1.5px solid #c8a8e8;
+      border-radius: var(--rl);
+      padding: 16px;
+      margin-top: 14px
+    }
+
+    .sa-panel-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--purple-text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px
+    }
+
+    .sa-panel-sub {
+      font-size: 11px;
+      color: var(--purple);
+      margin-bottom: 14px
+    }
+
+    /* BUG FIX HIGHLIGHT � makes it visually obvious which row fields are aligned */
+    .stock-col-open {
+      background: #f8f8f0
+    }
+
+    .stock-col-pur {
+      background: #f0f5ff
+    }
+
+    .stock-col-sold {
+      background: #fff5f5
+    }
+
+    .stock-col-close {
+      background: #f0fff0
+    }
+
+    @media(max-width:768px) {
+      #sb {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        transform: translateX(-100%)
+      }
+
+      #sb.open {
+        transform: translateX(0)
+      }
+
+      #mb {
+        display: flex;
+        align-items: center;
+        justify-content: center
+      }
+
+      #content {
+        padding: 12px
+      }
+
+      .g2,
+      .g3,
+      .g4 {
+        grid-template-columns: 1fr
+      }
+
+      .stat-grid {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .type-grp {
+        flex-direction: column
+      }
+
+      .btn-row {
+        flex-direction: column
+      }
+
+      .btn-row .btn {
+        width: 100%;
+        justify-content: center
+      }
+
+      .pay-summary-bar {
+        grid-template-columns: 1fr
+      }
+
+      .login-card {
+        padding: 28px 22px
+      }
+    }
+
+    @media(max-width:380px) {
+      .stat-grid {
+        grid-template-columns: 1fr
+      }
+    }
+
+    @media print {
+
+      /* Hide everything except the invoice print container */
+      body>*:not(#invoice-print) {
+        display: none !important;
+      }
+
+      #invoice-print {
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: transparent !important;
+      }
+
+      body {
+        background: transparent !important;
+        margin: 0;
+        padding: 0;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .inv {
+        border: none !important;
+        box-shadow: none !important;
+        background: #fff !important;
+        padding: 20px 24px !important;
+        width: 210mm !important;
+        max-width: none !important;
+        margin: 0 auto !important;
+        color: #000 !important;
+        font-size: 8px !important;
+        overflow: visible !important;
+      }
+
+      @page {
+        size: A4;
+        margin: 0;
+      }
+    }
+
+    .company-preview-card {
+      display: none !important;
+    }
+
+    /* IN-PAGE PRINT CONTAINER � hidden on screen, shown only when printing */
+    #invoice-print {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      width: 210mm;
+      background: white;
+    }
+
+    /* --- PAGINATION & LAZY LOADING OPTIMIZATIONS --- */
+    .pagination-ctrl {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px;
+      background: var(--surface2);
+      border-radius: var(--r);
+      margin-top: 12px;
+    }
+
+    .pagination-ctrl button {
+      padding: 6px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.12s;
+    }
+
+    .pagination-ctrl button:hover:not(:disabled) {
+      background: var(--green);
+      color: white;
+      border-color: var(--green);
+    }
+
+    .pagination-ctrl button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .pagination-info {
+      font-size: 11px;
+      color: var(--text2);
+      padding: 0 8px;
+    }
+
+    .load-more-btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background: var(--green-bg);
+      border: 1px solid var(--green);
+      border-radius: var(--r);
+      color: var(--green-text);
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 13px;
+      margin-top: 12px;
+      transition: all 0.2s;
+    }
+
+    .load-more-btn:hover {
+      background: var(--green);
+      color: white;
+    }
+
+    .load-more-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .table-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 20px;
+      color: var(--text2);
+      font-size: 13px;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .table-vscroll {
+      contain: layout style paint;
+      will-change: transform;
+    }
+
+    .table-body-optimized {
+      contain: layout style;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+
+<body>
+  <div id="toast"></div>
+
+  <div id="app">
+    <aside id="sb">
+      <div class="sb-logo">
+        <div class="sb-logo-name"><span class="sb-dot"></span>Graft Care Pharma</div>
+        <div class="sb-sub">Inventory &amp; Billing</div>
+      </div>
+      <nav class="sb-nav">
+        <div class="sb-sec">Overview</div>
+        <button class="sb-btn on" onclick="go('dash',this)">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path
+              d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+          </svg>
+          Dashboard
+        </button>
+        <div class="sb-sec">Purchase</div>
+        <button class="sb-btn" onclick="go('purchase',this)">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd"
+              d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3z"
+              clip-rule="evenodd" />
+          </svg>
+          Purchase Invoice
+        </button>
+        <button class="sb-btn" onclick="go('vendors',this)">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path
+              d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+          </svg>
+          Vendor Inventory
+        </button>
+        <div class="sb-sec">Inventory</div>
+        <button class="sb-btn" onclick="go('stock',this)">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
+            <path fill-rule="evenodd"
+              d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+              clip-rule="evenodd" />
+          </svg>
+          Stock
+        </button>
+        <button class="sb-btn" onclick="go('expiry',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M12 9v4l3 3"></path>
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M7 12h10"></path>
+          </svg>
+          Expiry Tracker
+        </button>
+        <div class="sb-sec">Invoicing</div>
+        <button class="sb-btn" onclick="go('sales',this)">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd"
+              d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+              clip-rule="evenodd" />
+          </svg>
+          Proforma Invoices
+        </button>
+        <button class="sb-btn" onclick="go('proforma-history',this)">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+            <path fill-rule="evenodd"
+              d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
+              clip-rule="evenodd" />
+          </svg>
+          Proforma History
+          <span id="pf-count-badge"
+            style="margin-left:auto;background:var(--purple);color:#fff;font-size:9px;padding:1px 6px;border-radius:10px;display:none">0</span>
+        </button>
+        <button class="sb-btn" onclick="go('history',this)">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd"
+              d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+              clip-rule="evenodd" />
+          </svg>
+          Invoice History
+          <span id="sb-history-member-badge"
+            style="margin-left:auto;background:var(--amber);color:#fff;font-size:9px;padding:1px 6px;border-radius:10px;display:none">0</span>
+        </button>
+
+        <button class="sb-btn" onclick="go('pt-tracker',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <polyline points="16 11 18 13 22 9"></polyline>
+          </svg>
+          Patient Tracker
+        </button>
+        <div class="sb-sec">Settings</div>
+        <button class="sb-btn" onclick="openSettings()">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd"
+              d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+              clip-rule="evenodd" />
+          </svg>
+          Settings ??
+        </button>
+      </nav>
+      <div class="sb-foot">
+        <span class="sb-user" id="sb-user-label">admin</span>
+        <button class="sb-logout" onclick="doLogout()">Sign out</button>
+      </div>
+    </aside>
+    <div id="ov" onclick="closeSB()"></div>
+    <div id="main">
+      <header id="topbar">
+        <button id="mb" onclick="toggleSB()">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd"
+              d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+              clip-rule="evenodd" />
+          </svg>
+        </button>
+        <div class="tb-title" id="tb-title">Dashboard</div>
+        <div class="tb-conn ok" id="tb-conn">&#9679; DB</div>
+        <div class="tb-badge" id="tb-date"></div>
+      </header>
+      <div id="content">
+
+        <!-- DASHBOARD -->
+        <div id="pg-dash" class="page on">
+          <div class="pg-title">Dashboard</div>
+          <div class="pg-sub" id="dash-sub">Graft Care Pharma � live overview</div>
+          <div class="stat-grid" id="dash-stats"></div>
+          <div id="dash-alerts"></div>
+          <div class="card">
+            <div class="card-t">Recent invoices</div>
+            <div id="dash-inv">
+              <div class="empty">No invoices yet</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PURCHASE -->
+        <div id="pg-purchase" class="page">
+          <div class="pg-title">Purchase Invoice</div>
+          <div class="pg-sub">Record purchase � items auto-add to stock.</div>
+          <div id="pu-edit-notice"
+            style="display:none;color:var(--amber-text);font-weight:500;background:var(--amber-bg);padding:8px 12px;border-radius:var(--r);margin-bottom:12px;font-size:12px;border:1px solid #f0c070">
+          </div>
+          <div class="card">
+            <div class="card-t">Vendor details <span class="bdg bdg-a">seller</span></div>
+            <div class="g3" style="margin-bottom:10px">
+              <div class="fld"><label>Vendor / company name</label>
+                <div class="ac-wrap">
+                  <input id="pu-vname" class="ac-inp" placeholder="Gaudev and Co" autocomplete="off"
+                    oninput="buildVendorDrop(this)" />
+                  <div class="ac-drop-fixed" id="pu-vname-drop"></div>
+                </div>
+              </div>
+              <div class="fld"><label>Contact person</label><input id="pu-vcontact" placeholder="Ravi Sharma" /></div>
+              <div class="fld"><label>Vendor GSTIN</label><input id="pu-vgst" placeholder="36ACMPK3914B1ZV" /></div>
+            </div>
+            <div class="g3">
+              <div class="fld"><label>D.L No.</label><input id="pu-vdl1" placeholder="114/HD/AP/2005/W" /></div>
+              <div class="fld"><label>D.L No. 20&amp;21</label><input id="pu-vdl3" placeholder="TS/HYD/2018-37104" />
+              </div>
+              <div class="fld"><label>Phone</label><input id="pu-vph" placeholder="9030999407"
+                  oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" /></div>
+            </div>
+            <div class="g3" style="margin-top:10px">
+              <div class="fld"><label>Vendor State</label>
+                <select id="pu-vstate" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:4px">
+                  <option value="">-- Select State --</option>
+                </select>
+              </div>
+              <div class="fld"><label>Your State (Buyer)</label>
+                <select id="pu-mystate" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:4px">
+                  <option value="">-- Select Your State --</option>
+                </select>
+              </div>
+            </div>
+            <div class="g4" style="margin-top:10px">
+              <div class="fld"><label>Door / Flat No.</label><input id="pu-vdoor" placeholder="#6-3-665/P" /></div>
+              <div class="fld"><label>Residential Address</label><input id="pu-vaddr"
+                  placeholder="OPP. URVASI HOTEL, PANJAGUTTA" /></div>
+              <div class="fld"><label>City</label><input id="pu-vcity" placeholder="Hyderabad" /></div>
+              <div class="fld"><label>Pincode</label><input id="pu-vpin" placeholder="500082" /></div>
+            </div>
+            <div class="g3" style="margin-top:10px">
+              <div class="fld" style="display:none"><label>Legacy Address (Hidden)</label><input id="pu-vaddr-old" />
+              </div>
+              <div class="fld"><label>Payment mode</label>
+                <select id="pu-pay" onchange="togglePuExpDate()">
+                  <option value="Cash">Cash</option>
+                  <option value="UPI / Online">UPI / Online</option>
+                  <option value="Cheque">Cheque</option>
+                  <option value="Credit">Credit</option>
+                </select>
+              </div>
+            </div>
+            <div id="pu-dynamic-field" class="g3" style="display:grid;margin-top:10px">
+              <div class="fld"><label>Amount Paid <span style="color:var(--red)">*</span></label><input type="number"
+                  id="pu-amt-paid" required placeholder="Amount" /></div>
+              <div class="fld"><label>Paid By (Name) <span style="color:var(--red)">*</span></label><input
+                  id="pu-paid-by" required placeholder="Name" /></div>
+            </div>
+          </div>
+          <div class="card company-preview-card">
+            <div class="card-t">Your pharmacy (buyer)</div>
+            <div
+              style="font-size:12px;color:var(--text2);background:var(--green-bg);border-radius:var(--r);padding:8px 12px"
+              id="pu-my-preview">Fill in Settings to see your details here</div>
+          </div>
+          <div class="card">
+            <div class="card-t">Invoice header</div>
+            <div class="g3">
+              <div class="fld"><label>Vendor Invoice No.</label><input id="pu-invno" placeholder="INV-2024-00123" />
+              </div>
+              <div class="fld"><label>Invoice date</label><input type="date" id="pu-date" required></div>
+              <div class="fld"><label>Note</label><input id="pu-note" placeholder="e.g. BILYPSA 4MG TAB AVAILABLE" />
+              </div>
+            </div>
+            <div class="g3" style="margin-top:10px">
+              <div class="fld"><label>Vendor Bank Name</label><input id="pu-vbank-name" placeholder="HDFC Bank" /></div>
+              <div class="fld"><label>Vendor Account No.</label><input id="pu-vbank-acc" placeholder="50200012345678" />
+              </div>
+              <div class="fld"><label>Vendor IFSC &amp; Branch</label><input id="pu-vbank-ifsc"
+                  placeholder="HDFC0001234, Panjagutta" /></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-t">Product line items</div>
+            <div class="li-wrap">
+              <table class="li-tbl" style="min-width:900px">
+                <thead>
+                  <tr>
+                    <th style="min-width:160px">Product name</th>
+                    <th>SCH</th>
+                    <th>Pack</th>
+                    <th>HSN</th>
+                    <th>Comp</th>
+                    <th>Batch</th>
+                    <th>Exp</th>
+                    <th>M.R.P</th>
+                    <th>Qty (strips)</th>
+                    <th>Free</th>
+                    <th>Buy Rate</th>
+                    <th>Amount (incl. GST)</th>
+                    <th>Disc%</th>
+                    <th>GST%</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="pu-items"></tbody>
+              </table>
+            </div>
+            <button class="btn btn-g btn-sm" onclick="addPuRow()" style="margin-top:8px">+ Add item</button>
+            <div class="sum-box">
+              <div class="sr"><span>Subtotal</span><span id="pu-s-sub">&#8377;0.00</span></div>
+              <div class="sr"><span>Total GST</span><span id="pu-s-gst" style="color:var(--green)">+&#8377;0.00</span>
+              </div>
+              <div class="sr"><span>Less discount</span>
+                <div class="sr-in">
+                  <select id="pu-dt" onchange="calcPu()">
+                    <option value="pct">%</option>
+                    <option value="amt">&#8377;</option>
+                  </select>
+                  <input type="number" id="pu-dv" value="0" oninput="calcPu()" />
+                  <span style="color:var(--red);min-width:65px;text-align:right" id="pu-ds">-&#8377;0.00</span>
+                </div>
+              </div>
+              <div class="sr tot"><span>Grand total</span><span id="pu-s-tot">&#8377;0.00</span></div>
+            </div>
+          </div>
+
+
+          <div class="btn-row no-print">
+            <button class="btn btn-p" onclick="savePurchase()">Save &amp; add to stock</button>
+            <button class="btn btn-g" onclick="go('stock',null)">View stock</button>
+          </div>
+        </div>
+
+        <!-- VENDOR INVENTORY -->
+        <div id="pg-vendors" class="page">
+          <div class="pg-title">Vendor Inventory</div>
+          <div class="pg-sub">All vendors � auto-saved from purchase invoices.</div>
+          <div id="vendors-list">
+            <div class="card">
+              <div class="empty">No vendors yet.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VENDOR DETAIL -->
+        <div id="pg-vendor-detail" class="page">
+          <div class="btn-row no-print" style="margin-bottom:14px">
+            <button class="btn btn-g" onclick="go('vendors',null)">&#8592; Back to Vendors</button>
+          </div>
+          <div id="vendor-detail-content"></div>
+        </div>
+
+        <!-- STOCK -->
+        <div id="pg-stock" class="page">
+          <div class="pg-title">Current Stock</div>
+          <div class="pg-sub">All medicines � auto-updated from purchases</div>
+          <div id="stock-alerts"></div>
+          <div class="card" style="padding:0;overflow:hidden">
+            <div style="overflow-x:auto">
+              <!-- FIX: Stock table headers now match exactly the TD order in renderStock() -->
+              <table class="dt" style="min-width:900px">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Product name</th>
+                    <th>SCH</th>
+                    <th>Pack</th>
+                    <th>HSN</th>
+                    <th>Comp</th>
+                    <th>Batch</th>
+                    <th>Exp</th>
+                    <th style="background:#f8f8f0;text-align:center">Qty(Opening)</th>
+                    <th style="background:#f0f5ff;text-align:center">Purchased</th>
+                    <th style="background:#fff5f5;text-align:center">Sold</th>
+                    <th style="background:#f0fff0;text-align:center">Qty(Closing)</th>
+                    <th>M.R.P</th>
+                    <th>Buy Rate</th>
+                    <th>Sell Rate</th>
+                    <th>GST%</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="stock-body" class="table-body-optimized">
+                  <tr>
+                    <td colspan="15" class="empty">No stock yet.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="stock-pagination"></div>
+          </div>
+        </div>
+
+        <!-- EXPIRY TRACKER -->
+        <div id="pg-expiry" class="page">
+          <div class="pg-title">Expiry Tracker</div>
+          <div class="pg-sub">Medicines expiring soon � sorted by nearest expiry first</div>
+          <div class="filter-pills">
+            <button class="fpill on" id="exp-f-all" onclick="setExpiryFilter('all',this)">All</button>
+            <button class="fpill" id="exp-f-3m" onclick="setExpiryFilter('3m',this)">Expiring in 3 months</button>
+            <button class="fpill" id="exp-f-6m" onclick="setExpiryFilter('6m',this)">Expiring in 6 months</button>
+            <button class="fpill" id="exp-f-expired" onclick="setExpiryFilter('expired',this)">Already expired</button>
+          </div>
+          <div class="card" style="padding:0;overflow:hidden">
+            <div style="overflow-x:auto">
+              <table class="dt" style="min-width:800px">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Product Name</th>
+                    <th>Batch</th>
+                    <th>Expiry Date</th>
+                    <th>Qty (strips)</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="expiry-body" class="table-body-optimized">
+                  <tr>
+                    <td colspan="6" class="empty">No products found.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="expiry-pagination"></div>
+          </div>
+        </div>
+
+        <!-- proforma -->
+        <div id="pg-sales" class="page">
+          <div class="pg-title">Create Invoice</div>
+          <div id="sal-edit-notice"
+            style="display:none;color:var(--amber-text);font-weight:500;background:var(--amber-bg);padding:8px 12px;border-radius:var(--r);margin-bottom:12px;font-size:12px;border:1px solid #f0c070">
+          </div>
+          <div class="type-grp">
+            <div class="tc on-r" id="sal-tc-ret" onclick="setSalType('retailer')">
+              <div><span class="tc-dot"></span><span class="tc-lbl">Retailer</span></div>
+              <div class="tc-sub">B2B � GST proforma invoice with GSTIN</div>
+            </div>
+            <div class="tc" id="sal-tc-pat" onclick="setSalType('patient')">
+              <div><span class="tc-dot"></span><span class="tc-lbl">Patient</span></div>
+              <div class="tc-sub">Retail bill � prescription details</div>
+            </div>
+          </div>
+          <div class="card company-preview-card" style="background:var(--green-bg);border-color:#b2dcc4">
+            <div class="card-t" style="color:var(--green-text)">Your pharmacy � seller <span class="bdg bdg-g">auto from
+                settings</span></div>
+            <div style="font-size:12px;color:var(--green-text);line-height:1.9" id="sal-my-preview">Fill in Settings to
+              see your details</div>
+          </div>
+          <div class="card" id="sal-ret-sec">
+            <div class="card-t">Retailer / customer details <span class="bdg bdg-b">type to search previous or enter
+                new</span></div>
+            <div class="g4" style="margin-bottom:10px">
+              <div class="fld"><label>Customer / shop name</label>
+                <div class="ac-wrap">
+                  <input id="r-name" class="ac-inp" placeholder=" Enter Retailer name" autocomplete="off"
+                    oninput="buildRetDrop(this,'name')" />
+                  <div class="ac-drop-fixed" id="r-name-drop"></div>
+                </div>
+              </div>
+              <div class="fld"><label>Door / Flat No.</label><input id="r-door" placeholder="#6-3-665/P" /></div>
+              <div class="fld"><label>Residential Address</label><input id="r-addr"
+                  placeholder="OPP. URVASI HOTEL, PANJAGUTTA" /></div>
+              <div class="fld"><label>City</label><input id="r-city" placeholder="Hyderabad" /></div>
+            </div>
+            <div class="g4">
+              <div class="fld"><label>Pincode</label><input id="r-pin" placeholder="500082" /></div>
+              <div class="fld"><label>Phone</label>
+                <div class="ac-wrap">
+                  <input id="r-ph" class="ac-inp" placeholder="Enter 10-digit number" autocomplete="off"
+                    oninput="this.value=this.value.replace(/\D/g,'').slice(0,10); buildRetDrop(this,'ph')" />
+                  <div class="ac-drop-fixed" id="r-ph-drop"></div>
+                </div>
+              </div>
+              <div class="fld"><label>DL No. 1</label><input id="r-dl1" placeholder="Enter Licence Number" /></div>
+              <div class="fld"><label>DL No. 2</label><input id="r-dl2" placeholder="Enter Licence Number" /></div>
+            </div>
+            <div class="g4" style="margin-top:10px">
+              <div class="fld"><label>GST No.</label><input id="r-gst" placeholder="Enter GST number"
+                  oninput="autoDetectStateFromGST(this.value, 'r-state')" /></div>
+              <div class="fld"><label>State <span id="r-state-bdg" class="bdg bdg-g"
+                    style="margin-left:4px;font-size:9px">INTRA STATE</span></label>
+                <select id="r-state" onchange="updateGSTMode()">
+                  <option value="Andhra Pradesh">Andhra Pradesh</option>
+                  <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                  <option value="Assam">Assam</option>
+                  <option value="Bihar">Bihar</option>
+                  <option value="Chhattisgarh">Chhattisgarh</option>
+                  <option value="Goa">Goa</option>
+                  <option value="Gujarat">Gujarat</option>
+                  <option value="Haryana">Haryana</option>
+                  <option value="Himachal Pradesh">Himachal Pradesh</option>
+                  <option value="Jharkhand">Jharkhand</option>
+                  <option value="Karnataka">Karnataka</option>
+                  <option value="Kerala">Kerala</option>
+                  <option value="Madhya Pradesh">Madhya Pradesh</option>
+                  <option value="Maharashtra">Maharashtra</option>
+                  <option value="Manipur">Manipur</option>
+                  <option value="Meghalaya">Meghalaya</option>
+                  <option value="Mizoram">Mizoram</option>
+                  <option value="Nagaland">Nagaland</option>
+                  <option value="Odisha">Odisha</option>
+                  <option value="Punjab">Punjab</option>
+                  <option value="Rajasthan">Rajasthan</option>
+                  <option value="Sikkim">Sikkim</option>
+                  <option value="Tamil Nadu">Tamil Nadu</option>
+                  <option value="Telangana" selected>Telangana</option>
+                  <option value="Tripura">Tripura</option>
+                  <option value="Uttar Pradesh">Uttar Pradesh</option>
+                  <option value="Uttarakhand">Uttarakhand</option>
+                  <option value="West Bengal">West Bengal</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="card" id="sal-pat-sec" style="display:none">
+            <div class="card-t">Patient details <span class="bdg bdg-t">type to search previous or enter new</span>
+            </div>
+            <div class="g4" style="margin-bottom:10px">
+              <div class="fld"><label>Patient name</label>
+                <div class="ac-wrap">
+                  <input id="p-name" class="ac-inp" placeholder="Enter patient name" autocomplete="off"
+                    oninput="buildPatDrop(this,'name')" />
+                  <div class="ac-drop-fixed" id="p-name-drop"></div>
+                </div>
+              </div>
+              <div class="fld"><label>Age</label><input id="p-age" type="number" placeholder=" Enter Age" /></div>
+              <div class="fld"><label>Gender</label>
+                <select id="p-gender">
+                  <option value="">Select</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="fld"><label>Phone</label>
+                <div class="ac-wrap">
+                  <input id="p-ph" class="ac-inp" placeholder="Enter 10-digit number" autocomplete="off"
+                    oninput="this.value=this.value.replace(/\D/g,'').slice(0,10); buildPatDrop(this,'ph')" />
+                  <div class="ac-drop-fixed" id="p-ph-drop"></div>
+                </div>
+              </div>
+            </div>
+            <div class="g4" style="margin-bottom:10px">
+              <div class="fld"><label>Doctor name</label><input id="p-doc" placeholder="Enter dr name" /></div>
+              <div class="fld"><label>Hospital name</label><input id="p-hosp" placeholder="Enter hospital name" /></div>
+              <div class="fld"><label>Doctor phone</label><input id="p-doc-ph" placeholder="9030999407"
+                  oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" /></div>
+              <div class="fld"><label>Door / Flat No.</label><input id="p-door" placeholder="#6-3-665/P" /></div>
+            </div>
+            <div class="g4" style="margin-bottom:10px">
+              <div class="fld"><label>Residential Address</label><input id="p-addr"
+                  placeholder="OPP. URVASI HOTEL, PANJAGUTTA" /></div>
+              <div class="fld"><label>City</label><input id="p-city" placeholder="Hyderabad" /></div>
+              <div class="fld"><label>Pincode</label><input id="p-pin" placeholder="500082" /></div>
+              <div class="fld"><label>State <span id="p-state-bdg" class="bdg bdg-g"
+                    style="margin-left:4px;font-size:9px">INTRA STATE</span></label>
+                <select id="p-state" onchange="updateGSTMode()">
+                  <option value="Andhra Pradesh">Andhra Pradesh</option>
+                  <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                  <option value="Assam">Assam</option>
+                  <option value="Bihar">Bihar</option>
+                  <option value="Chhattisgarh">Chhattisgarh</option>
+                  <option value="Goa">Goa</option>
+                  <option value="Gujarat">Gujarat</option>
+                  <option value="Haryana">Haryana</option>
+                  <option value="Himachal Pradesh">Himachal Pradesh</option>
+                  <option value="Jharkhand">Jharkhand</option>
+                  <option value="Karnataka">Karnataka</option>
+                  <option value="Kerala">Kerala</option>
+                  <option value="Madhya Pradesh">Madhya Pradesh</option>
+                  <option value="Maharashtra">Maharashtra</option>
+                  <option value="Manipur">Manipur</option>
+                  <option value="Meghalaya">Meghalaya</option>
+                  <option value="Mizoram">Mizoram</option>
+                  <option value="Nagaland">Nagaland</option>
+                  <option value="Odisha">Odisha</option>
+                  <option value="Punjab">Punjab</option>
+                  <option value="Rajasthan">Rajasthan</option>
+                  <option value="Sikkim">Sikkim</option>
+                  <option value="Tamil Nadu">Tamil Nadu</option>
+                  <option value="Telangana" selected>Telangana</option>
+                  <option value="Tripura">Tripura</option>
+                  <option value="Uttar Pradesh">Uttar Pradesh</option>
+                  <option value="Uttarakhand">Uttarakhand</option>
+                  <option value="West Bengal">West Bengal</option>
+                </select>
+              </div>
+            </div>
+            <!-- Membership Checkbox Row -->
+            <div
+              style="margin-top:10px;padding:10px 12px;background:var(--amber-bg);border:1px solid #f0c070;border-radius:var(--r);display:flex;align-items:center;gap:10px">
+              <input type="checkbox" id="p-membership"
+                style="width:16px;height:16px;accent-color:var(--amber);cursor:pointer" onchange="toggleMembership()" />
+              <label for="p-membership" style="font-size:12.5px;font-weight:600;color:var(--amber-text);cursor:pointer">
+                Cheyutha Foundation Member � Organ Transplant Patient
+              </label>
+              <input type="text" id="p-member-id" placeholder="Membership ID"
+                style="padding:4px 8px;font-size:12px;border:1px solid #f0c070;border-radius:4px;outline:none;background:#fff;color:var(--text);margin-left:auto;width:150px;display:none" />
+              <span id="p-member-note" style="font-size:10px;color:var(--amber);margin-left:4px">(tick if patient is a
+                registered member)</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-t">Invoice header</div>
+            <div class="g4">
+              <div class="fld" style="display:none"><label>Invoice no.</label><input id="sal-invno" readonly /></div>
+              <div class="fld"><label>Invoice date</label><input type="date" id="sal-date" required></div>
+              <div class="fld"><label>Payment mode</label>
+                <select id="sal-type-val" onchange="handleSalPayMode()">
+                  <option value="Cash">Cash</option>
+                  <option value="UPI / Online">UPI / Online</option>
+                  <option value="Credit">Credit</option>
+                </select>
+              </div>
+              <div class="fld"></div>
+            </div>
+            <div id="sal-dynamic-field" class="g3" style="display:grid;margin-top:10px">
+              <div class="fld"><label>Received By (Name) <span style="color:var(--red)">*</span></label><input
+                  id="sal-rec-by" required placeholder="Name" /></div>
+              <div class="fld"></div>
+            </div>
+            <!-- FIX: Added missing sal-note input referenced in JS -->
+            <div class="fld" style="margin-top:10px"><label>Note</label><input id="sal-note"
+                placeholder="Optional note for this invoice" /></div>
+          </div>
+          <div class="card">
+            <div class="card-t">Product line items
+              <span
+                style="font-size:10px;color:var(--blue-text);background:var(--blue-bg);padding:2px 8px;border-radius:12px">type
+                name ? auto-fill from stock</span>
+            </div>
+            <div class="li-wrap">
+              <table class="li-tbl" style="min-width:820px">
+                <thead>
+                  <tr>
+                    <th style="min-width:160px">Product name</th>
+                    <th>SCH</th>
+                    <th>Pack</th>
+                    <th>HSN</th>
+                    <th>Comp</th>
+                    <th>Batch</th>
+                    <th>Exp</th>
+                    <th>M.R.P</th>
+                    <th>Qty (strips)</th>
+                    <th>Free</th>
+                    <th>Buy Rate</th>
+                    <th>Sell Rate</th>
+                    <th>Amount</th>
+                    <th>Disc%</th>
+                    <th>GST%</th>
+                    <th class="col-cgst">CGST amt</th>
+                    <th class="col-sgst">SGST amt</th>
+                    <th class="col-igst" style="display:none">IGST amt</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="sal-items"></tbody>
+              </table>
+            </div>
+            <button class="btn btn-g btn-sm" onclick="addSalRow()" style="margin-top:8px">+ Add item</button>
+            <div class="sum-box">
+              <div class="sr"><span>Subtotal</span><span id="sal-s-sub">&#8377;0.00</span></div>
+              <div class="sr row-cgst"><span>Total CGST</span><span id="sal-s-cgst"
+                  style="color:var(--green)">+&#8377;0.00</span></div>
+              <div class="sr row-sgst"><span>Total SGST</span><span id="sal-s-sgst"
+                  style="color:var(--green)">+&#8377;0.00</span></div>
+              <div class="sr row-igst" style="display:none"><span>Total IGST</span><span id="sal-s-igst"
+                  style="color:var(--green)">+&#8377;0.00</span></div>
+              <div class="sr"><span>Less discount</span>
+                <div class="sr-in">
+                  <select id="sal-dt" onchange="calcSal()">
+                    <option value="pct">%</option>
+                    <option value="amt">&#8377;</option>
+                  </select>
+                  <input type="number" id="sal-dv" value="0" oninput="calcSal()" />
+                  <span style="color:var(--red);min-width:65px;text-align:right" id="sal-ds">-&#8377;0.00</span>
+                </div>
+              </div>
+              <div class="charity-row" id="charity-row" style="display:none">
+                <div>
+                  <div class="charity-lbl">Cheyutha Foundation &#8212; Organ Transplants</div>
+                  <div class="charity-sub"></div>
+                </div>
+                <div class="charity-in" style="display:flex;align-items:center;gap:5px">
+                  <span style="font-size:12px;color:var(--amber)">&#8377;</span>
+                  <input type="number" id="sal-charity" value="0" oninput="calcSal()" />
+                  <span style="color:var(--red);min-width:65px;text-align:right" id="sal-cs">-&#8377;0.00</span>
+                </div>
+              </div>
+              <div class="sr"><span>Rounding</span><span id="sal-s-round">&#8377;0.00</span></div>
+              <div class="sr tot">
+                <span>Net payable</span>
+                <input type="number" id="sal-s-tot-input" placeholder="0.00" oninput="applyNetPayable()" style="width:100px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--r);text-align:right;font-weight:600;font-size:14px" />
+              </div>
+            </div>
+          </div>
+          <div class="btn-row no-print">
+            <button class="btn btn-p" onclick="saveDraftOnly()">?? Save as Draft</button>
+            <button class="btn btn-b" onclick="go('proforma-history',null)">View Drafts</button>
+            <button class="btn btn-amber" onclick="viewProformaPreview()">??? View Proforma Invoice</button>
+          </div>
+        </div>
+
+        <!-- PROFORMA PAGE -->
+        <div id="pg-proforma" class="page">
+          <div class="btn-row no-print" style="margin-bottom:14px;position:relative;z-index:10">
+            <button class="btn btn-p" style="font-size:14px;padding:10px 20px;font-weight:700;cursor:pointer"
+              onclick="confirmProforma()">&#9989; Create Final Invoice</button>
+            <button class="btn btn-b" style="cursor:pointer" onclick="saveProformaPDF()">&#8595; Print / Save
+              PDF</button>
+            <button class="btn btn-g" style="cursor:pointer" onclick="go('sales',null)">&#8592; Back to Edit</button>
+          </div>
+          <div id="proforma-area" style="position:relative;z-index:1"></div>
+        </div>
+
+        <!-- PROFORMA HISTORY -->
+        <div id="pg-proforma-history" class="page">
+          <div class="pg-title">Invoices</div>
+
+          <!-- DRAFTS SECTION -->
+          <div style="margin-bottom:24px">
+            <div class="pg-sub">Draft Invoices � editable, can be converted to proforma</div>
+            <div id="pf-drafts-content">
+              <div class="card">
+                <div class="empty">No draft invoices yet.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PROFORMAS SECTION (hidden - using direct draft to invoice) -->
+          <div style="margin-bottom:24px;display:none">
+            <div class="pg-sub">Proforma Invoices � finalized proformas, ready to convert to invoice</div>
+            <div id="pf-proformas-content">
+              <div class="card">
+                <div class="empty">No proforma invoices yet.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FINALIZED SECTION -->
+          <div>
+            <div class="pg-sub">Final Invoices � locked, stock deducted</div>
+            <div id="pf-finalized-content">
+              <div class="card">
+                <div class="empty">No finalized invoices yet.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PRINT PAGE -->
+        <div id="pg-print" class="page">
+          <div class="btn-row no-print" style="margin-bottom:14px;position:relative;z-index:10">
+            <button class="btn btn-p" style="cursor:pointer;font-size:13px;padding:10px 18px;font-weight:600"
+              onclick="doPrint()">&#128424; Print / Save as PDF</button>
+            <button class="btn btn-g" style="cursor:pointer" onclick="go('history',null)">&#8592; History</button>
+          </div>
+          <div id="print-area"
+            style="overflow-x:auto;background:#f5f5f5;padding:16px;border-radius:8px;min-height:200px;position:relative;z-index:1">
+          </div>
+        </div>
+
+        <!-- INVOICE HISTORY -->
+        <div id="pg-history" class="page">
+          <div class="pg-title">Invoice History</div>
+          <div class="pg-sub">All finalized invoices � locked, stock deducted</div>
+          <div class="filter-pills" id="hist-filter-pills">
+            <button class="fpill on" id="hf-all" onclick="setHistFilter('all',this)">All Invoices</button>
+            <button class="fpill" id="hf-ret" onclick="setHistFilter('retailer',this)">Retailer</button>
+            <button class="fpill" id="hf-pat" onclick="setHistFilter('patient',this)">Patient</button>
+            <button class="fpill" id="hf-mem" style="border-color:var(--amber);color:var(--amber-text)"
+              onclick="setHistFilter('member',this)">&#9733; Cheyutha Members</button>
+          </div>
+          <div class="card" style="padding:0;overflow:hidden">
+            <div style="overflow-x:auto">
+              <table class="dt" style="min-width:660px">
+                <thead>
+                  <tr style="background:var(--surface2);font-weight:600">
+                    <th style="padding:12px 10px;text-align:left">#</th>
+                    <th style="padding:12px 10px;text-align:left">Invoice No.</th>
+                    <th style="padding:12px 10px;text-align:left">Customer Name</th>
+                    <th style="padding:12px 10px;text-align:left">Type</th>
+                    <th style="padding:12px 10px;text-align:left">Member</th>
+                    <th style="padding:12px 10px;text-align:left">Medicine(s)</th>
+                    <th style="padding:12px 10px;text-align:left">Qty</th>
+                    <th style="padding:12px 10px;text-align:right">Amount</th>
+                    <th style="padding:12px 10px;text-align:left">Payment Mode</th>
+                    <th style="padding:12px 10px;text-align:left">Date</th>
+                    <th style="padding:12px 10px;text-align:center">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="hist-body" class="table-body-optimized">
+                  <tr>
+                    <td colspan="11" class="empty">No invoices yet.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="hist-pagination"></div>
+          </div>
+        </div>
+
+        <!-- PAYMENT TRACKER -->
+
+
+        <!-- PATIENT TRACKER -->
+        <div id="pg-pt-tracker" class="page">
+          <div class="pg-title">Patient Tracker</div>
+          <div class="pg-sub">Search and track patient medical records</div>
+
+          <div class="card" style="margin-bottom:16px">
+            <div
+              style="display:flex;gap:12px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:12px">
+              <button class="btn btn-g btn-sm pt-tab on" id="pt-tab-name" onclick="setPTFilter('name')">Search by
+                Name</button>
+              <button class="btn btn-g btn-sm pt-tab" id="pt-tab-month" onclick="setPTFilter('month')">Search by
+                Month</button>
+            </div>
+
+            <!-- Name Filter UI -->
+            <div id="pt-filter-name" class="pt-filter-ui">
+              <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:flex-end">
+                <div class="fld">
+                  <label>Mobile Number (10 Digits) *</label>
+                  <input type="text" id="pt-search-phone" maxlength="10" placeholder="Enter 10-digit mobile number">
+                </div>
+                <button class="btn btn-p" onclick="searchPTByDetails()"
+                  style="height:32px;padding:0 16px;font-size:13px">Search</button>
+              </div>
+            </div>
+
+            <!-- Month Filter UI -->
+            <div id="pt-filter-month" class="pt-filter-ui" style="display:none">
+              <div style="display:flex;gap:8px;align-items:flex-end">
+                <div class="fld" style="flex:1">
+                  <label>Select Month & Year</label>
+                  <input type="month" id="pt-search-month">
+                </div>
+                <button class="btn btn-p" onclick="searchPTByMonth()" style="height:38px">Search</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="padding:0;overflow:hidden">
+            <div style="overflow-x:auto">
+              <table class="dt" style="min-width:800px">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Inv No.</th>
+                    <th>Patient Name</th>
+                    <th>Mobile Number</th>
+                    <th>Medicines</th>
+                    <th>Qty</th>
+                    <th>Amount</th>
+                    <th>Payment</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="pt-results-body">
+                  <tr>
+                    <td colspan="9" class="empty">Enter a search criteria to see results.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- SETTINGS -->
+        <div id="pg-settings" class="page">
+          <div class="pg-title">Settings</div>
+          <div class="pg-sub">Your pharmacy details &#8212; appear on every invoice</div>
+          <div id="sa-banner"
+            style="display:none;background:linear-gradient(135deg,#6c3483,#4a1a6a);border-radius:var(--rl);padding:12px 16px;margin-bottom:16px;align-items:center;gap:10px">
+            <span style="font-size:18px">??</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#fff">Super Admin Mode Active</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.75)">You have full access to all settings including
+                admin credential management.</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-t">Pharmacy identity</div>
+            <div class="g3" style="margin-bottom:10px">
+              <div class="fld"><label>Pharmacy name</label><input id="s-name" value="GRAFT CARE PHARMA" /></div>
+              <div class="fld"><label>GSTIN</label><input id="s-gst" placeholder="36ACMPK3914B1ZV" /></div>
+              <div class="fld"><label>UPI ID (Default)</label><input id="s-upi-id" placeholder="9876543210@upi" /></div>
+            </div>
+            <div class="g3">
+              <div class="fld"><label>D.L No. 20B</label><input id="s-dl1" placeholder="114/HD/AP/2005/W" /></div>
+              <div class="fld"><label>D.L No. 21B</label><input id="s-dl2" placeholder="114/HD/AP/2005/W" /></div>
+              <div class="fld"><label>D.L No. 20&amp;21</label><input id="s-dl3" placeholder="TS/HYD/2018-37104" />
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-t">Contact &amp; compliance</div>
+            <div class="g3">
+              <div class="fld"><label>Address line 1</label><input id="s-addr1"
+                  placeholder="#6-3-665/P, 1ST &amp; 2ND FLOOR" /></div>
+              <div class="fld"><label>Address line 2</label><input id="s-addr2"
+                  placeholder="OPP.URVASI HOTEL, PANJAGUTTA" /></div>
+              <div class="fld"><label>City / Pincode</label><input id="s-city" placeholder="HYDERABAD-500 082" /></div>
+            </div>
+            <div class="g3" style="margin-top:10px">
+              <div class="fld"><label>Phone numbers</label><input id="s-ph" placeholder="9030999407,9030999408" /></div>
+              <div class="fld"><label>Email</label><input id="s-email" placeholder="yourmail@email.com" /></div>
+              <div class="fld"><label>Stamp Image URL / Base64</label><input id="s-stamp-img"
+                  placeholder="data:image/png;base64,..." /></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-t">Bank details <span class="bdg bdg-b">printed on every invoice</span></div>
+            <div class="g3">
+              <div class="fld"><label>Bank name &amp; company</label><input id="s-bank-name"
+                  placeholder="HDFC BANK � GRAFT CARE PHARMA" /></div>
+              <div class="fld"><label>Account No.</label><input id="s-bank-acc" placeholder="50200031458944" /></div>
+              <div class="fld"><label>IFSC / Branch</label><input id="s-bank-ifsc"
+                  placeholder="HDFC0001228, PANJAGUTTA BRANCH" /></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-t">Admin credentials <span class="bdg bdg-r">change login password</span></div>
+            <div class="g3">
+              <div class="fld"><label>Admin email</label><input id="s-admin-email" placeholder="admin@graftcare.com" />
+              </div>
+              <div class="fld"><label>New password</label><input type="password" id="s-admin-pass"
+                  placeholder="Leave blank to keep current" /></div>
+              <div class="fld"><label>Confirm new password</label><input type="password" id="s-admin-pass2"
+                  placeholder="Re-enter new password" /></div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-p" onclick="saveSettings()">Save settings</button>
+          </div>
+          <div class="sa-panel" id="sa-creds-panel" style="display:none">
+            <div class="sa-panel-title">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" style="color:var(--purple)">
+                <path fill-rule="evenodd"
+                  d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v2H2v-4l4.257-4.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 2 2 0 012 2 1 1 0 102 0 4 4 0 00-4-4z"
+                  clip-rule="evenodd" />
+              </svg>
+              Super Admin � Credential Override
+              <span class="sa-badge">SUPER ADMIN</span>
+            </div>
+            <div class="sa-panel-sub">Use this section to reset the admin email/password at any time. Only accessible
+              with <a href="/cdn-cgi/l/email-protection" class="__cf_email__"
+                data-cfemail="f49590999d9ab4938695928097958691da979b99">[email&#160;protected]</a> credentials.</div>
+            <div class="g3">
+              <div class="fld"><label>Override Admin Email</label><input id="sa-override-email"
+                  placeholder="admin@graftcare.com" /></div>
+              <div class="fld"><label>New Admin Password</label><input type="password" id="sa-override-pass"
+                  placeholder="Enter new password" /></div>
+              <div class="fld"><label>Confirm Password</label><input type="password" id="sa-override-pass2"
+                  placeholder="Re-enter new password" /></div>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-purple" onclick="superAdminOverride()">&#128273; Apply Override</button>
+            </div>
+          </div>
+          <div class="card" style="margin-top:14px">
+            <div class="card-t">Google Sheets backup <span class="bdg bdg-g">optional</span></div>
+            <div class="gs-section">
+              <div class="gs-head">
+                <div class="gs-logo">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <rect x="1" y="1" width="14" height="14" rx="2" fill="white" fill-opacity=".2" />
+                    <rect x="3" y="3" width="4" height="4" rx="1" fill="white" />
+                    <rect x="9" y="3" width="4" height="4" rx="1" fill="white" fill-opacity=".6" />
+                    <rect x="3" y="9" width="4" height="4" rx="1" fill="white" fill-opacity=".6" />
+                    <rect x="9" y="9" width="4" height="4" rx="1" fill="white" fill-opacity=".8" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="gs-title">Export all data to Google Sheets</div>
+                  <div class="gs-sub">Proforma Invoices, purchases, stock, payments � 8 sheet tabs</div>
+                </div>
+              </div>
+              <div class="g2" style="margin-bottom:8px">
+                <div class="fld"><label style="font-size:10.5px;color:var(--green-text)">Spreadsheet ID</label><input
+                    id="gs-sheet-id" placeholder="1BxiMVs0XRA5nFM..."
+                    style="font-size:11.5px;padding:6px 8px;background:rgba(255,255,255,.8)" /></div>
+                <div class="fld"><label style="font-size:10.5px;color:var(--green-text)">API Key</label><input
+                    id="gs-api-key" type="password" placeholder="AIzaSy..."
+                    style="font-size:11.5px;padding:6px 8px;background:rgba(255,255,255,.8)" /></div>
+              </div>
+              <div id="gs-progress-wrap" style="display:none">
+                <div class="gs-progress">
+                  <div class="gs-fill" id="gs-fill" style="width:0%"></div>
+                </div>
+                <div style="font-size:10.5px;color:var(--green-text);margin-top:3px" id="gs-prog-label">Preparing...
+                </div>
+              </div>
+              <div class="gs-log" id="gs-log">Ready � enter credentials and click sync.</div>
+              <div class="btn-row" style="margin-top:10px">
+                <button class="btn btn-p btn-sm" onclick="startGSSync()">&#9650; Sync all data now</button>
+                <div class="fld" style="flex-direction:row;align-items:center;gap:6px;margin-top:0">
+                  <label style="font-size:11px;color:var(--green-text);white-space:nowrap">Auto-backup</label>
+                  <select id="gs-freq"
+                    style="font-size:11px;padding:4px 6px;background:rgba(255,255,255,.8);border:1px solid #a8d5b8;border-radius:6px;color:var(--green-text)">
+                    <option value="manual">Manual</option>
+                    <option value="daily" selected>Daily</option>
+                    <option value="live">On every save</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- EDIT STOCK MODAL -->
+  <div class="modal-bg" id="edit-modal">
+    <div class="modal">
+      <div class="modal-title">Edit stock item</div>
+      <input type="hidden" id="edit-idx" />
+      <div class="g2" style="margin-bottom:10px">
+        <div class="fld"><label>Medicine name</label><input id="e-name" /></div>
+        <div class="fld"><label>Pack</label><input id="e-pack" /></div>
+      </div>
+      <div class="g2" style="margin-bottom:10px">
+        <div class="fld"><label>Batch no.</label><input id="e-batch" /></div>
+        <div class="fld"><label>Expiry (MM/YY)</label><input id="e-exp" placeholder="07/27" /></div>
+      </div>
+      <div class="g3" style="margin-top:10px">
+        <div class="fld"><label>Qty in stock (strips)</label><input type="number" step="1" min="1" id="e-qty" required></div>
+        <div class="fld"><label>MRP (&#8377;)</label><input type="number" id="e-mrp" step="0.01" /></div>
+        <div class="fld"><label>Min Stock</label><input type="number" id="e-min" value="20" /></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-p" onclick="saveEdit()">Update</button>
+        <button class="btn btn-g" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADJUST STOCK MODAL -->
+  <div class="modal-bg" id="adjust-modal">
+    <div class="modal" style="max-width:550px">
+      <div class="modal-title">Adjust Stock & Log</div>
+      <input type="hidden" id="adj-idx" />
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px" id="adj-item-name"></div>
+
+      <div class="card" style="background:#f8f9fa;margin-bottom:12px;max-height:150px;overflow-y:auto;padding:8px">
+        <div style="font-size:11px;font-weight:bold;margin-bottom:6px">Recent Movements</div>
+        <table class="dt" style="font-size:11px" id="adj-log-table"></table>
+      </div>
+
+      <div class="g3" style="margin-bottom:10px">
+        <div class="fld"><label>Adjustment Type</label>
+          <select id="adj-type">
+            <option value="Sale Return (+)">Sale Return (+)</option>
+            <option value="Purchase Return (-)">Purchase Return (-)</option>
+            <option value="Manual (+)">Manual (+)</option>
+            <option value="Manual (-)">Manual (-)</option>
+          </select>
+        </div>
+        <div class="fld"><label>Qty (Strips)</label><input type="number" step="1" min="1" id="adj-qty" required></div>
+      </div>
+      <div class="fld" style="margin-bottom:14px"><label>Note / Reason</label><input id="adj-note"
+          placeholder="Optional reason" /></div>
+
+      <div class="modal-actions">
+        <button class="btn btn-b" onclick="saveAdjust()">Log Adjustment</button>
+        <button class="btn btn-g" onclick="closeAdjustModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRINT CONTAINER: shown only during window.print() -->
+  <div id="invoice-print"></div>
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+  <script src="states.js" defer></script>
+  <script src="main.js" defer></script>
+</body>
+
+</html>
