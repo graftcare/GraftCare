@@ -51,7 +51,10 @@
       "Bash(python -m py_compile backend/main.py)",
       "Bash(git init *)",
       "Bash(git config *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git remote *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git diff-tree *)"
     ]
   }
 }
