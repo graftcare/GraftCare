@@ -1079,7 +1079,7 @@ async def get_expiry_data():
 async def get_expiry_debug():
     """Debug endpoint to check expiry data"""
     try:
-        from supabase_client import supabase
+        from .supabase_client import supabase
 
         # Get raw purchase items
         purchase_response = supabase.table("purchase_items").select("*").limit(10).execute()

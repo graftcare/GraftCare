@@ -16,8 +16,13 @@ load_dotenv(dotenv_path=env_path)
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 
+if not SUPABASE_URL:
+    print("CRITICAL ERROR: SUPABASE_URL is not set in environment variables!")
+if not SUPABASE_SERVICE_KEY:
+    print("CRITICAL ERROR: SUPABASE_SERVICE_KEY is not set in environment variables!")
+
 if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
-    raise Exception("Missing SUPABASE_URL or SUPABASE_SERVICE_KEY in environment variables")
+    raise Exception("Missing SUPABASE credentials. Please set SUPABASE_URL and SUPABASE_SERVICE_KEY in the Render Environment settings.")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
