@@ -213,29 +213,72 @@ async def get_customer_by_gstin(gstin):
 # PURCHASE INVOICES - Database operations
 # ============================================================================
 
+async def get_purchase_items_by_invoice(invoice_id):
+    """Get items from purchase_items table with product names"""
+    try:
+        response = supabase.table("purchase_items").select("*").eq("purchase_invoice_id", invoice_id).execute()
+        items = response.data if response.data else []
+
+        # Enrich items with product names from products table
+        if items:
+            for item in items:
+                if item.get('product_id'):
+                    product = await get_product_by_id(item['product_id'])
+                    if product:
+                        item['name'] = product.get('name', 'Unknown')
+                        item['product_name'] = product.get('name', 'Unknown')
+
+        return items
+    except Exception as e:
+        print(f"Error fetching purchase items: {e}")
+        return []
+
 async def get_purchase_invoices():
-    """Get all purchase invoices"""
+    """Get all purchase invoices with items (from JSONB or purchase_items table)"""
     try:
         response = supabase.table("purchase_invoices").select("*").order("invoice_date", desc=True).execute()
-        return response.data if response.data else []
+        result = []
+        if response.data:
+            for inv in response.data:
+                # If items JSONB column is empty, fetch from purchase_items table
+                if not inv.get('items'):
+                    items_from_table = await get_purchase_items_by_invoice(inv['id'])
+                    inv['items'] = items_from_table if items_from_table else []
+                result.append(inv)
+        return result
     except Exception as e:
         print(f"Error fetching purchase invoices: {e}")
         return []
 
 async def get_purchase_invoice_by_id(invoice_id):
-    """Get purchase invoice by ID"""
+    """Get purchase invoice by ID with items (from JSONB or purchase_items table)"""
     try:
         response = supabase.table("purchase_invoices").select("*").eq("id", invoice_id).execute()
-        return response.data[0] if response.data else None
+        if response.data:
+            inv = response.data[0]
+            # If items JSONB column is empty, fetch from purchase_items table
+            if not inv.get('items'):
+                items_from_table = await get_purchase_items_by_invoice(invoice_id)
+                inv['items'] = items_from_table if items_from_table else []
+            return inv
+        return None
     except Exception as e:
         print(f"Error fetching purchase invoice: {e}")
         return None
 
 async def get_purchase_invoices_by_vendor(vendor_id):
-    """Get all purchase invoices for a specific vendor"""
+    """Get all purchase invoices for a specific vendor with items (from JSONB or purchase_items table)"""
     try:
         response = supabase.table("purchase_invoices").select("*").eq("vendor_id", vendor_id).order("invoice_date", desc=True).execute()
-        return response.data if response.data else []
+        result = []
+        if response.data:
+            for inv in response.data:
+                # If items JSONB column is empty, fetch from purchase_items table
+                if not inv.get('items'):
+                    items_from_table = await get_purchase_items_by_invoice(inv['id'])
+                    inv['items'] = items_from_table if items_from_table else []
+                result.append(inv)
+        return result
     except Exception as e:
         print(f"Error fetching vendor invoices: {e}")
         return []
@@ -306,6 +349,15 @@ async def get_purchase_items_by_product(product_id):
     except Exception as e:
         print(f"Error fetching purchase items by product: {e}")
         return []
+
+async def get_latest_purchase_item_for_product(product_id):
+    """Get the most recent purchase item for a product (for batch/expiry)"""
+    try:
+        response = supabase.table("purchase_items").select("batch,expiry,created_at").eq("product_id", product_id).order("created_at", desc=True).limit(1).execute()
+        return response.data[0] if response.data else None
+    except Exception as e:
+        print(f"Error fetching latest purchase item: {e}")
+        return None
 
 async def get_invoice_items_by_product(product_id):
     """Get all invoice items (sold) for a product"""

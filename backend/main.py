@@ -19,7 +19,7 @@ from backend.supabase_client import (
     get_products, create_product, update_product, delete_product, get_product_by_id,
     get_customers, create_customer, update_customer, delete_customer, get_customer_by_id, get_customer_by_phone, get_customer_by_gstin,
     get_purchase_invoices, create_purchase_invoice, update_purchase_invoice, delete_purchase_invoice, get_purchase_invoice_by_id, get_purchase_invoices_by_vendor,
-    get_purchase_items, create_purchase_items, delete_purchase_items, get_purchase_items_by_product,
+    get_purchase_items, create_purchase_items, delete_purchase_items, get_purchase_items_by_product, get_latest_purchase_item_for_product,
     get_drafts, create_draft, update_draft, delete_draft, get_draft_by_id, lookup_draft_by_phone, lookup_draft_by_gstin, count_drafts_by_phone,
     get_invoices, create_invoice, update_invoice, delete_invoice, get_invoice_by_id, get_invoices_by_customer,
     get_stock_ledger, add_stock_ledger_entry, get_product_stock, get_dashboard_stats,
@@ -68,6 +68,16 @@ class ProductModel(BaseModel):
     mrp: float
     gst_rate: float
 
+class ProductUpdateModel(BaseModel):
+    name: Optional[str] = None
+    hsn_code: Optional[str] = None
+    pack: Optional[str] = None
+    company: Optional[str] = None
+    scheme: Optional[str] = None
+    cost_price: Optional[float] = None
+    mrp: Optional[float] = None
+    gst_rate: Optional[float] = None
+
 class CustomerModel(BaseModel):
     id: Optional[str] = None
     name: str
@@ -102,6 +112,7 @@ class PurchaseInvoiceModel(BaseModel):
     payment_mode: Optional[str] = None
     amount_paid: Optional[float] = None
     paid_by: Optional[str] = None
+    transaction_id: Optional[str] = None
     subtotal: Optional[float] = None
     total_gst: Optional[float] = None
     discount_amount: Optional[float] = None
@@ -149,6 +160,9 @@ class DraftModel(BaseModel):
     subtotal: Optional[float] = None
     total_gst: Optional[float] = None
     discount_amount: Optional[float] = None
+    discount_type: Optional[str] = "pct"  # 'pct' or 'amt'
+    discount_value: Optional[float] = 0
+    charity_amount: Optional[float] = None
     grand_total: Optional[float] = None
     notes: Optional[str] = None
     items: List[Dict[str, Any]] = []  # All items stored as JSONB array
@@ -404,8 +418,8 @@ async def create_new_product(product: ProductModel):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.put("/api/products/{product_id}")
-async def update_existing_product(product_id: str, product: ProductModel):
-    """Update product"""
+async def update_existing_product(product_id: str, product: ProductUpdateModel):
+    """Update product (partial fields allowed)"""
     try:
         existing = await get_product_by_id(product_id)
         if not existing:
@@ -565,7 +579,12 @@ async def create_new_purchase_invoice(invoice: PurchaseInvoiceModel):
         if not vendor:
             raise HTTPException(status_code=404, detail="Vendor not found")
 
-        invoice_data = invoice.dict(exclude={"items"}, exclude_none=True)
+        # Prepare invoice data with items as JSONB array
+        invoice_data = invoice.dict(exclude_none=True)
+        # Ensure items are included in the invoice
+        if invoice.items:
+            invoice_data["items"] = invoice.items
+
         created_invoice = await create_purchase_invoice(invoice_data)
 
         if invoice.items:
@@ -976,6 +995,14 @@ async def get_all_stock_summary():
             all_purchase_items = await get_purchase_items_by_product(product_id)
             purchased = sum(item.get("qty", 0) for item in all_purchase_items) if all_purchase_items else 0
 
+            # Get latest batch and expiry from most recent purchase (sorted by created_at DESC)
+            latest_batch = None
+            latest_expiry = None
+            latest_item = await get_latest_purchase_item_for_product(product_id)
+            if latest_item:
+                latest_batch = latest_item.get("batch")
+                latest_expiry = latest_item.get("expiry")
+
             # Get all invoice items for this product (sold) - from JSONB items in invoices table
             try:
                 invoices = await get_invoices()
@@ -998,7 +1025,14 @@ async def get_all_stock_summary():
                 "sold": sold,
                 "available": max(0, available),
                 "cost_price": product.get("cost_price"),
-                "mrp": product.get("mrp")
+                "mrp": product.get("mrp"),
+                "hsn_code": product.get("hsn_code"),
+                "pack": product.get("pack"),
+                "company": product.get("company"),
+                "scheme": product.get("scheme"),
+                "gst_rate": product.get("gst_rate"),
+                "batch_no": latest_batch,
+                "expiry_date": latest_expiry
             })
 
         return stock_summary
@@ -1137,6 +1171,65 @@ async def create_new_sale(sale: SalesModel):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================================================
+# EXPORT TO GOOGLE SHEETS
+# ============================================================================
+
+@app.get("/api/export/google-sheets")
+async def export_to_google_sheets():
+    """Export all database tables to existing Google Sheet"""
+    try:
+        from backend.google_sheets_client import add_sheet, write_data_to_sheet, get_spreadsheet_url
+
+        # Existing spreadsheet ID - update this with your sheet ID
+        spreadsheet_id = "1ddHcuKy2bSZZTNyUChep_CugvcP6C4TX6_DDho_yLAk"
+
+        # Fetch all tables
+        vendors = await get_vendors()
+        products = await get_products()
+        customers = await get_customers()
+        invoices = await get_invoices()
+        drafts = await get_drafts()
+        purchase_invoices = await get_purchase_invoices()
+        stock_ledger = await get_stock_ledger()
+
+        # Prepare data for export
+        tables_data = {
+            'Vendors': vendors or [],
+            'Products': products or [],
+            'Customers': customers or [],
+            'Invoices': invoices or [],
+            'Drafts': drafts or [],
+            'Purchase Invoices': purchase_invoices or [],
+            'Stock Ledger': stock_ledger or []
+        }
+
+        # Create sheets and populate data
+        for table_name, data in tables_data.items():
+            try:
+                add_sheet(spreadsheet_id, table_name)
+                if data:
+                    write_data_to_sheet(spreadsheet_id, table_name, data)
+                    print(f"✓ {table_name}: {len(data)} records")
+                else:
+                    print(f"⚠ {table_name}: No data")
+            except Exception as e:
+                print(f"Error with {table_name}: {e}")
+                continue
+
+        return {
+            "status": "success",
+            "message": "All tables exported to Google Sheet",
+            "spreadsheet_id": spreadsheet_id,
+            "url": get_spreadsheet_url(spreadsheet_id),
+            "sheet_count": len(tables_data)
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
 
 # ============================================================================
 # STATIC FILES

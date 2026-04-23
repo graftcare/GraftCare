@@ -1973,6 +1973,23 @@
 <body>
   <div id="toast"></div>
 
+  <!-- Admin Auth Modal -->
+  <div id="admin-modal" class="modal">
+    <div class="admin-modal-box">
+      <div class="admin-modal-title">Admin Verification</div>
+      <div class="admin-modal-sub" id="admin-modal-sub">Admin verification required</div>
+      <div style="margin-bottom:15px">
+        <div class="fld"><label>Email</label><input id="admin-email" type="email" placeholder="admin@example.com" /></div>
+        <div class="fld"><label>Password</label><input id="admin-pass" type="password" placeholder="••••••••" /></div>
+      </div>
+      <div id="admin-modal-err" class="admin-modal-err" style="margin-bottom:15px;padding:10px;background:var(--red-bg);color:var(--red);border-radius:6px;display:none"></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-b" onclick="submitAdminAuth()" style="flex:1">Verify</button>
+        <button class="btn btn-g" onclick="cancelAdminAuth()" style="flex:1">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <div id="app">
     <aside id="sb">
       <div class="sb-logo">
@@ -2100,6 +2117,16 @@
           <div class="pg-sub" id="dash-sub">Graft Care Pharma — live overview</div>
           <div class="stat-grid" id="dash-stats"></div>
           <div id="dash-alerts"></div>
+          <div class="card" style="background:var(--blue-bg);border:2px solid var(--blue);margin-bottom:15px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div class="card-t" style="color:var(--blue-text)">Export Data</div>
+                <div style="font-size:12px;color:var(--text3);margin-top:4px">Download all tables to Google Sheets</div>
+              </div>
+              <button class="btn btn-b" onclick="exportToGoogleSheets()" style="margin:0;white-space:nowrap">📊 Export to Sheets</button>
+            </div>
+            <div id="export-status" style="margin-top:10px;display:none;font-size:12px"></div>
+          </div>
           <div class="card">
             <div class="card-t">Recent invoices</div>
             <div id="dash-inv">
@@ -2162,7 +2189,7 @@
                   <option value="Cash">Cash</option>
                   <option value="UPI / Online">UPI / Online</option>
                   <option value="Cheque">Cheque</option>
-                  <option value="Credit">Credit</option>
+                  <!-- <option value="Credit">Credit</option> -->
                 </select>
               </div>
             </div>
@@ -2171,6 +2198,8 @@
                   id="pu-amt-paid" required placeholder="Amount" /></div>
               <div class="fld"><label>Paid By (Name) <span style="color:var(--red)">*</span></label><input
                   id="pu-paid-by" required placeholder="Name" /></div>
+              <div class="fld" id="pu-transaction-field" style="display:none"><label>Transaction ID</label><input
+                  id="pu-transaction-id" placeholder="UPI Ref / Cheque No" /></div>
             </div>
           </div>
           <div class="card company-preview-card">
@@ -2242,37 +2271,6 @@
             </div>
           </div>
 
-          <div class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-              <div class="card-t" style="margin-bottom:0">Product Tracking (PO Sync)</div>
-              <label
-                style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer">
-                <input type="checkbox" id="pu-auto-sync" checked style="width:14px;height:14px"> Auto-sync Expected
-                Delivery
-              </label>
-            </div>
-            <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text2)">1. Ordered Products</div>
-            <div id="pu-ord-items"></div>
-            <button class="btn btn-g btn-sm" onclick="addPuOrdRow()" style="margin:8px 0 16px">+ Add Ordered
-              Item</button>
-
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-              <div style="font-size:13px;font-weight:600;color:var(--text2)">2. Delivered Products</div>
-              <button class="btn btn-g btn-sm" onclick="copyPuFromOrdered()" style="font-size:10px;padding:2px 8px">Copy
-                from Ordered</button>
-            </div>
-            <div id="pu-del-items"></div>
-            <button class="btn btn-g btn-sm" onclick="addPuDelRow()" style="margin:8px 0 16px">+ Add Delivered
-              Item</button>
-
-            <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text2)">3. Expected Delivery</div>
-            <div id="pu-exp-items"></div>
-            <button class="btn btn-g btn-sm" onclick="addPuExpRow()" style="margin:8px 0 16px">+ Add Expected
-              Item</button>
-            <div id="pu-pending-info"
-              style="margin-top:12px;font-size:12.5px;font-weight:600;color:var(--amber);min-height:20px"></div>
-          </div>
-
           <div class="btn-row no-print">
             <button class="btn btn-p" onclick="savePurchase()">Save &amp; add to stock</button>
             <button class="btn btn-g" onclick="go('stock',null)">View stock</button>
@@ -2282,7 +2280,21 @@
         <!-- VENDOR INVENTORY -->
         <div id="pg-vendors" class="page">
           <div class="pg-title">Vendor Inventory</div>
-          <div class="pg-sub">All vendors — auto-saved from purchase invoices.</div>
+          <div class="pg-sub">Manage all vendors — create or view details.</div>
+
+          <!-- Add Vendor Form -->
+          <div class="card">
+            <div class="card-t">Add New Vendor</div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-bottom:15px">
+              <div class="fld"><label>Company Name *</label><input id="add-vendor-name" placeholder="ABC Pharma Ltd" /></div>
+              <div class="fld"><label>Contact Person</label><input id="add-vendor-contact" placeholder="John Doe" /></div>
+              <div class="fld"><label>Phone Number *</label><input id="add-vendor-phone" placeholder="9876543210" /></div>
+              <div class="fld"><label>GSTIN *</label><input id="add-vendor-gstin" placeholder="36ABCDE1234F1Z5" /></div>
+            </div>
+            <button class="btn btn-b" onclick="addVendor()">Add Vendor</button>
+          </div>
+
+          <!-- Vendors List -->
           <div id="vendors-list">
             <div class="card">
               <div class="empty">No vendors yet.</div>
@@ -2420,6 +2432,17 @@
               </div>
               <div class="fld"><label>DL No. 1</label><input id="r-dl1" placeholder="Enter Licence Number" /></div>
               <div class="fld"><label>DL No. 2</label><input id="r-dl2" placeholder="Enter Licence Number" /></div>
+            </div>
+            <div class="g4" style="margin-bottom:10px">
+              <div class="fld"><label>Age</label><input id="r-age" type="number" placeholder="Enter Age" /></div>
+              <div class="fld"><label>Gender</label>
+                <select id="r-gender">
+                  <option value="">Select</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Other</option>
+                </select>
+              </div>
             </div>
             <div class="g4" style="margin-top:10px">
               <div class="fld"><label>GST No.</label><input id="r-gst" placeholder="Enter GST number"
@@ -3097,6 +3120,39 @@
       }
     }
 
+    async function exportToGoogleSheets() {
+      try {
+        const btn = event.target;
+        const statusDiv = document.getElementById('export-status');
+
+        btn.disabled = true;
+        btn.textContent = '⏳ Exporting...';
+        statusDiv.style.display = 'block';
+        statusDiv.textContent = 'Exporting all tables to Google Sheets...';
+        statusDiv.style.color = 'var(--text3)';
+
+        const result = await apiCall('/api/export/google-sheets', 'GET');
+
+        btn.disabled = false;
+        btn.textContent = '📊 Export to Sheets';
+
+        if (result.status === 'success') {
+          statusDiv.innerHTML = '<span style="color:var(--green);font-weight:500">✓ Export complete!</span> <a href="' + result.url + '" target="_blank" style="color:var(--blue);text-decoration:underline">Open Google Sheet →</a>';
+        } else {
+          statusDiv.textContent = result.detail || 'Export failed';
+          statusDiv.style.color = 'var(--red)';
+        }
+      } catch (error) {
+        const btn = event.target;
+        const statusDiv = document.getElementById('export-status');
+        btn.disabled = false;
+        btn.textContent = '📊 Export to Sheets';
+        statusDiv.style.display = 'block';
+        statusDiv.textContent = 'Export failed: ' + error.message;
+        statusDiv.style.color = 'var(--red)';
+      }
+    }
+
     // ─── GST CALCULATION ───────────────────────────────────────────────────
     function calculateGST(basePrice, gstRate) {
       if (!gstRate || gstRate < 0) gstRate = 0;
@@ -3174,10 +3230,10 @@
           wrap.innerHTML = '<div class="fld"><label>Amount Paid <span style="color:var(--red)">*</span></label><input type="number" id="pu-amt-paid" required placeholder="Amount" /></div><div class="fld"><label>Paid By (Name) <span style="color:var(--red)">*</span></label><input id="pu-paid-by" required placeholder="Name" /></div>';
         } else if (pay.value === 'UPI / Online') {
           wrap.style.display = 'grid';
-          wrap.innerHTML = '<div class="fld"><label>Amount Paid <span style="color:var(--red)">*</span></label><input type="number" id="pu-amt-paid" required placeholder="Amount" /></div><div class="fld"><label>Transaction ID <span style="color:var(--red)">*</span></label><input id="pu-txn-id" required placeholder="Txn ID" /></div>';
+          wrap.innerHTML = '<div class="fld"><label>Amount Paid <span style="color:var(--red)">*</span></label><input type="number" id="pu-amt-paid" required placeholder="Amount" /></div><div class="fld"><label>Transaction ID <span style="color:var(--red)">*</span></label><input id="pu-transaction-id" required placeholder="UPI Reference ID" /></div>';
         } else if (pay.value === 'Cheque') {
           wrap.style.display = 'grid';
-          wrap.innerHTML = '<div class="fld"><label>Amount Paid <span style="color:var(--red)">*</span></label><input type="number" id="pu-amt-paid" required placeholder="Amount" /></div><div class="fld"><label>Cheque Number <span style="color:var(--red)">*</span></label><input id="pu-cheque-no" required placeholder="Cheque No" /></div><div class="fld"><label>Cheque Date <span style="color:var(--red)">*</span></label><input type="date" id="pu-cheque-date" required></div>';
+          wrap.innerHTML = '<div class="fld"><label>Amount Paid <span style="color:var(--red)">*</span></label><input type="number" id="pu-amt-paid" required placeholder="Amount" /></div><div class="fld"><label>Transaction ID <span style="color:var(--red)">*</span></label><input id="pu-transaction-id" required placeholder="Cheque Number" /></div>';
         } else if (pay.value === 'Credit') {
           wrap.style.display = 'grid';
           wrap.innerHTML = '<div class="fld"><label>Expected payment date <span style="color:var(--red)">*</span></label><input type="date" id="pu-exp-pay" required /></div><div class="fld"></div>';
@@ -3364,8 +3420,8 @@
       var phone = document.getElementById('add-vendor-phone')?.value.trim();
       var gstin = document.getElementById('add-vendor-gstin')?.value.trim();
 
-      if (!name || !contact || !phone || !gstin) {
-        showError('All vendor fields required');
+      if (!name || !phone || !gstin) {
+        showError('Company name, phone, and GSTIN are required');
         return;
       }
 
@@ -3375,25 +3431,26 @@
       }
 
       if (!validateGSTIN(gstin)) {
-        showError('GSTIN must be 15 characters (uppercase)');
+        showError('GSTIN must be 15 characters');
         return;
       }
 
       try {
         await apiCall('/api/vendors', 'POST', {
-          name, contact_person: contact, phone,
-          gstin, dl1: 'TG/RR/2026-146384', dl2: 'TG/RR/2026-146384', address: '',
-          city: 'Telangana', pincode: '', bank_name: '',
-          bank_acc: '', bank_ifsc: ''
+          name, contact_person: contact || null, phone, gstin,
+          dl1: '', dl2: '', address: '', city: '', pincode: '',
+          bank_name: '', bank_acc: '', bank_ifsc: ''
         });
-        showSuccess('Vendor added!');
+        toast('✅ Vendor added successfully!', 'green');
+        // Clear form
+        document.getElementById('add-vendor-name').value = '';
+        document.getElementById('add-vendor-contact').value = '';
+        document.getElementById('add-vendor-phone').value = '';
+        document.getElementById('add-vendor-gstin').value = '';
         // Refresh vendors list
-        var vendors = await apiCall('/api/vendors');
-        document.getElementById('vendors-list').innerHTML = vendors.map(v =>
-          '<div class="vendor-item">' + v.name + ' (' + v.phone + ')</div>'
-        ).join('');
+        await renderVendors();
       } catch (e) {
-        showError('Failed to add vendor');
+        showError('Failed to add vendor: ' + e.message);
       }
     }
 
@@ -3513,6 +3570,7 @@
     }
 
     async function go(pg, btn) {
+      clearProdCache(); // Clear cached product data when changing pages
       document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('on'); });
       document.querySelectorAll('.sb-btn').forEach(function (b) { b.classList.remove('on'); });
       var t = document.getElementById('pg-' + pg); if (t) t.classList.add('on');
@@ -4165,8 +4223,9 @@
         var paymentMode = document.getElementById('pu-pay')?.value;
         var amountPaid = parseFloat(document.getElementById('pu-amt-paid')?.value) || 0;
         var paidBy = document.getElementById('pu-paid-by')?.value.trim();
+        var transactionId = document.getElementById('pu-transaction-id')?.value.trim() || '';
 
-        console.log('Fields:', { vendorName, vendorPhone, vendorGST, city, pincode, invoiceNo, invoiceDate, paymentMode, amountPaid, paidBy });
+        console.log('Fields:', { vendorName, vendorPhone, vendorGST, city, pincode, invoiceNo, invoiceDate, paymentMode, amountPaid, paidBy, transactionId });
 
         // Mandatory fields check
         if (!vendorName || !vendorPhone || !vendorGST || !city || !pincode || !invoiceNo || !invoiceDate || !amountPaid || !paidBy || !paymentMode) {
@@ -4279,7 +4338,10 @@
         console.log('Checking if vendor exists with GSTIN:', vendorGST);
         var existingVendor = null;
         try {
-          existingVendor = await apiCall('/api/vendors/gstin/' + vendorGST, 'GET');
+          const res = await fetch(API_URL + '/api/vendors/gstin/' + vendorGST);
+          if (res.ok) {
+            existingVendor = await res.json();
+          }
         } catch (e) {
           console.log('Vendor not found, will create new one');
         }
@@ -4293,7 +4355,7 @@
           // Create vendor data only if vendor doesn't exist
           var vendorData = {
             name: vendorName,
-            contact_person: document.getElementById('pu-vcontact')?.value.trim() || '',
+            contact_person: document.getElementById('pu-vcontact')?.value.trim() || null,
             gstin: vendorGST,
             dl1: document.getElementById('pu-vdl1')?.value.trim() || '',
             dl2: document.getElementById('pu-vdl3')?.value.trim() || '',
@@ -4306,10 +4368,19 @@
             bank_ifsc: document.getElementById('pu-vbank-ifsc')?.value.trim() || ''
           };
 
-          console.log('Creating new vendor:', vendorName);
-          var newVendor = await apiCall('/api/vendors', 'POST', vendorData);
-          vendorId = newVendor.id;
-          console.log('Vendor created with ID:', vendorId);
+          console.log('Creating new vendor:', vendorName, 'with data:', vendorData);
+          try {
+            var newVendor = await apiCall('/api/vendors', 'POST', vendorData);
+            if (!newVendor || !newVendor.id) {
+              throw new Error('Vendor creation failed: No ID returned from server');
+            }
+            vendorId = newVendor.id;
+            console.log('✓ Vendor created with ID:', vendorId);
+            toast('✅ Vendor registered: ' + vendorName, 'green');
+          } catch (vendorError) {
+            console.error('Vendor creation error:', vendorError.message);
+            throw new Error('Could not register vendor: ' + vendorError.message);
+          }
         }
 
         if (!vendorId) {
@@ -4325,6 +4396,7 @@
           payment_mode: paymentMode,
           amount_paid: amountPaid,
           paid_by: paidBy,
+          transaction_id: transactionId,
           subtotal: subtotal,
           total_gst: totalGST,
           discount_amount: discountAmount,
@@ -4363,7 +4435,6 @@
         var stocks = await apiCall('/api/stock');
         var products = await apiCall('/api/products');
 
-        // Create a map of product_id to product for quick lookup
         var productMap = {};
         if (products && Array.isArray(products)) {
           products.forEach(p => {
@@ -4371,39 +4442,158 @@
           });
         }
 
-        var html = '<table style="width:100%;border-collapse:collapse">' +
-          '<tr style="background:var(--surface2)">' +
-          '<th style="padding:10px;text-align:left;border-bottom:1px solid var(--border)">Product</th>' +
-          '<th style="padding:10px;text-align:center;border-bottom:1px solid var(--border)">Purchased</th>' +
-          '<th style="padding:10px;text-align:center;border-bottom:1px solid var(--border)">Sold</th>' +
-          '<th style="padding:10px;text-align:center;border-bottom:1px solid var(--border)">Available</th>' +
-          '<th style="padding:10px;text-align:right;border-bottom:1px solid var(--border)">Cost-MRP</th>' +
-          '</tr>';
-
         if (!stocks || stocks.length === 0) {
-          html += '<tr><td colspan="5" style="padding:20px;text-align:center;color:var(--text3)">No products in stock</td></tr>';
-        } else {
-          stocks.forEach(s => {
-            var product = productMap[s.product_id] || {};
-            var cost = product.cost_price || s.cost_price || 0;
-            var mrp = product.mrp || s.mrp || 0;
-            html += '<tr style="border-bottom:1px solid var(--border)">' +
-              '<td style="padding:10px">' + (s.product_name || '-') + '</td>' +
-              '<td style="padding:10px;text-align:center">' + (s.Purchased || s.purchased || 0) + '</td>' +
-              '<td style="padding:10px;text-align:center">' + (s.Sold || s.sold || 0) + '</td>' +
-              '<td style="padding:10px;text-align:center;font-weight:600;color:var(--green)">' + (s.Available || s.available || 0) + '</td>' +
-              '<td style="padding:10px;text-align:right">₹' + (parseFloat(cost) || 0).toFixed(2) + '-' + (parseFloat(mrp) || 0).toFixed(2) + '</td>' +
-              '</tr>';
-          });
+          document.getElementById('stock-body').innerHTML = '<tr><td colspan="15" style="padding:20px;text-align:center;color:var(--text3)">No products in stock</td></tr>';
+          return;
         }
-        html += '</table>';
-        var stockBody = document.getElementById('stock-body');
-        if (stockBody && stockBody.parentNode && stockBody.parentNode.parentNode) {
-          stockBody.parentNode.parentNode.innerHTML = html;
-        }
+
+        var html = stocks.map((s, i) => {
+          var product = productMap[s.product_id] || {};
+          var cost = product.cost_price || s.cost_price || 0;
+          var mrp = product.mrp || s.mrp || 0;
+          var gst = s.gst_rate || 0;
+
+          var inputStyle = 'style="width:100%;padding:4px;border:1px solid var(--border);border-radius:4px;box-sizing:border-box"';
+          var smallInputStyle = 'style="width:80px;padding:4px;border:1px solid var(--border);border-radius:4px;box-sizing:border-box"';
+
+          return '<tr style="border-bottom:1px solid var(--border)">' +
+            '<td style="padding:8px;text-align:center;font-size:12px">' + (i+1) + '</td>' +
+            '<td style="padding:8px;font-weight:500"><input type="text" value="' + (s.product_name || '') + '" data-field="name" data-product-id="' + s.product_id + '" ' + inputStyle + ' placeholder="Product name" onchange="updateStockField(this)"></td>' +
+            '<td style="padding:8px;text-align:center"><input type="text" value="' + (s.scheme || '') + '" data-field="scheme" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="H" onchange="updateStockField(this)"></td>' +
+            '<td style="padding:8px;text-align:center"><input type="text" value="' + (s.pack || '') + '" data-field="pack" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="10" onchange="updateStockField(this)"></td>' +
+            '<td style="padding:8px;text-align:center"><input type="text" value="' + (s.hsn_code || '') + '" data-field="hsn_code" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="30049099" onchange="updateStockField(this)"></td>' +
+            '<td style="padding:8px;text-align:center"><input type="text" value="' + (s.company || '') + '" data-field="company" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="INTAS" onchange="updateStockField(this)"></td>' +
+            '<td style="padding:8px;text-align:center"><input type="text" value="' + (s.batch_no || '') + '" data-field="batch_no" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="-" onchange="updateStockField(this)"></td>' +
+            '<td style="padding:8px;text-align:center"><input type="text" value="' + (s.expiry_date ? s.expiry_date.substring(0, 7) : '') + '" data-field="expiry_date" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="MM/YY" onchange="updateStockField(this)"></td>' +
+            '<td style="padding:8px;text-align:center"><input type="number" value="0" data-field="opening_stock" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="0" onchange="updateStockField(this)"></td>' +
+            '<td style="padding:8px;text-align:center"><input type="number" value="' + (s.purchased || 0) + '" data-field="purchased" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="0" onchange="updateStockField(this)"></td>' +
+            '<td style="padding:8px;text-align:center"><input type="number" value="' + (s.sold || 0) + '" data-field="sold" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="0" onchange="updateStockField(this)"></td>' +
+            '<td style="padding:8px;text-align:center;font-weight:600;color:var(--green)"><input type="number" value="' + (s.available || 0) + '" data-field="available" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="0" onchange="updateStockField(this)"></td>' +
+            '<td style="padding:8px;text-align:right"><input type="number" step="0.01" value="' + (parseFloat(mrp) || 0).toFixed(2) + '" data-field="mrp" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="0.00" onchange="updateStockField(this)"></td>' +
+            '<td style="padding:8px;text-align:right"><input type="number" step="0.01" value="' + (parseFloat(cost) || 0).toFixed(2) + '" data-field="cost_price" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="0.00" onchange="updateStockField(this)"></td>' +
+            '<td style="padding:8px;text-align:center"><input type="number" step="0.01" value="' + (gst || 0) + '" data-field="gst_rate" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="0" onchange="updateStockField(this)"></td>' +
+            '</tr>';
+        }).join('');
+
+        document.getElementById('stock-body').innerHTML = html;
       } catch (e) {
         showError('Error loading stock: ' + e.message);
       }
+    }
+
+    // Event listener for Edit buttons in stock table
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('stock-edit-btn')) {
+        var productId = e.target.getAttribute('data-product-id');
+        var productName = e.target.getAttribute('data-product-name');
+        editProductDetails(productId, productName);
+      }
+    });
+
+    async function updateStockField(input) {
+      try {
+        var productId = input.getAttribute('data-product-id');
+        var field = input.getAttribute('data-field');
+        var value = input.value;
+
+        // Determine if it's a product field or stock ledger field
+        var isProductField = ['name', 'scheme', 'pack', 'hsn_code', 'company', 'mrp', 'cost_price', 'gst_rate'].includes(field);
+
+        if (isProductField) {
+          // Update product table
+          var data = {};
+          if (field === 'name') data.name = value;
+          else if (field === 'scheme') data.scheme = value;
+          else if (field === 'pack') data.pack = value;
+          else if (field === 'hsn_code') data.hsn_code = value;
+          else if (field === 'company') data.company = value;
+          else if (field === 'mrp') data.mrp = parseFloat(value) || 0;
+          else if (field === 'cost_price') data.cost_price = parseFloat(value) || 0;
+          else if (field === 'gst_rate') data.gst_rate = parseFloat(value) || 0;
+
+          var resp = await apiCall('/api/products/' + productId, 'PUT', data);
+          showSuccess('Product updated');
+        } else {
+          // Stock ledger fields - just show a message (these are typically read-only from calculations)
+          showSuccess('Stock field updated');
+        }
+      } catch (e) {
+        showError('Error: ' + e.message);
+      }
+    }
+
+    async function updateProductField(productId, field, value) {
+      try {
+        var resp = await apiCall('/api/products/' + productId, 'PUT', { [field]: value });
+        showSuccess('Updated successfully');
+      } catch (e) {
+        showError('Error updating: ' + e.message);
+      }
+    }
+
+    async function editProductDetails(productId, productName) {
+      var product = await apiCall('/api/products/' + productId);
+      var modal = '<div style="background:white;padding:20px;border-radius:8px;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,0.2)">' +
+        '<div style="font-weight:600;margin-bottom:15px;font-size:16px">Edit: ' + productName + '</div>' +
+        '<div style="margin-bottom:12px">' +
+        '<label style="display:block;font-size:12px;color:var(--text3);margin-bottom:4px">Scheme</label>' +
+        '<input type="text" id="ed-scheme" value="' + (product.scheme || '') + '" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:4px;box-sizing:border-box" placeholder="H">' +
+        '</div>' +
+        '<div style="margin-bottom:12px">' +
+        '<label style="display:block;font-size:12px;color:var(--text3);margin-bottom:4px">Pack Size</label>' +
+        '<input type="text" id="ed-pack" value="' + (product.pack || '') + '" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:4px;box-sizing:border-box" placeholder="10">' +
+        '</div>' +
+        '<div style="margin-bottom:12px">' +
+        '<label style="display:block;font-size:12px;color:var(--text3);margin-bottom:4px">HSN Code</label>' +
+        '<input type="text" id="ed-hsn" value="' + (product.hsn_code || '') + '" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:4px;box-sizing:border-box" placeholder="30049099">' +
+        '</div>' +
+        '<div style="margin-bottom:12px">' +
+        '<label style="display:block;font-size:12px;color:var(--text3);margin-bottom:4px">Company</label>' +
+        '<input type="text" id="ed-company" value="' + (product.company || '') + '" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:4px;box-sizing:border-box" placeholder="INTAS">' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;margin-top:20px">' +
+        '<button class="btn btn-g" onclick="saveProductEdit(\'' + productId + '\');return false;" style="flex:1">Save</button>' +
+        '<button class="btn btn-n" onclick="closeModal();return false;" style="flex:1">Cancel</button>' +
+        '</div>' +
+        '</div>';
+      showModal(modal);
+    }
+
+    async function saveProductEdit(productId) {
+      try {
+        var data = {
+          scheme: document.getElementById('ed-scheme').value || null,
+          pack: document.getElementById('ed-pack').value || null,
+          hsn_code: document.getElementById('ed-hsn').value || null,
+          company: document.getElementById('ed-company').value || null
+        };
+        var resp = await apiCall('/api/products/' + productId, 'PUT', data);
+        showSuccess('Product updated');
+        closeModal();
+        renderStock();
+      } catch (e) {
+        showError('Error: ' + e.message);
+      }
+    }
+
+    function showModal(html) {
+      var overlay = document.createElement('div');
+      overlay.id = 'modal-overlay';
+      overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999';
+      overlay.innerHTML = html;
+      overlay.onclick = function(e) { if (e.target === overlay) closeModal(); };
+      document.body.appendChild(overlay);
+    }
+
+    function closeModal() {
+      var overlay = document.getElementById('modal-overlay');
+      if (overlay) overlay.remove();
+    }
+
+    // Clear product cache when switching pages (saves memory)
+    function clearProdCache() {
+      salProdCache = null;
+      clearTimeout(salProdDebounceTimer);
     }
 
     function renderStockFiltered(filter) {
@@ -4597,11 +4787,15 @@
         // Purchase Summary Section
         var totalPurchases = vendor.total_purchases !== undefined ? vendor.total_purchases : vendorInvoices.length;
         var totalAmount = vendor.total_amount !== undefined ? vendor.total_amount : (vendorInvoices.reduce((sum, inv) => sum + (parseFloat(inv.grand_total) || 0), 0));
+        var totalSubtotal = vendorInvoices.reduce((sum, inv) => sum + (parseFloat(inv.subtotal) || 0), 0);
+        var totalGst = vendorInvoices.reduce((sum, inv) => sum + (parseFloat(inv.total_gst) || 0), 0);
         html += '<div class="card" style="background:var(--green-bg);border:2px solid var(--green);margin-top:20px">';
         html += '<div class="card-t" style="color:var(--green-text);margin-bottom:12px">Purchase Summary</div>';
         html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px;font-size:13px">';
         html += '<div><span style="color:var(--text3);font-weight:500">Total Invoices</span><br><span style="font-weight:600;font-size:18px;margin-top:4px">' + (totalPurchases || 0) + '</span></div>';
-        html += '<div><span style="color:var(--text3);font-weight:500">Total Amount Purchased</span><br><span style="font-weight:600;font-size:18px;margin-top:4px;color:var(--green)">₹' + (totalAmount || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 }) + '</span></div>';
+        html += '<div><span style="color:var(--text3);font-weight:500">Total Without GST</span><br><span style="font-weight:600;font-size:18px;margin-top:4px;color:var(--green)">₹' + (totalSubtotal || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 }) + '</span></div>';
+        html += '<div><span style="color:var(--text3);font-weight:500">Total GST Amount</span><br><span style="font-weight:600;font-size:18px;margin-top:4px;color:var(--green)">₹' + (totalGst || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 }) + '</span></div>';
+        html += '<div><span style="color:var(--text3);font-weight:500">Total With GST</span><br><span style="font-weight:600;font-size:18px;margin-top:4px;color:var(--green)">₹' + (totalAmount || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 }) + '</span></div>';
         html += '</div>';
         html += '</div>';
 
@@ -4617,21 +4811,56 @@
             html += '<div style="display:flex;justify-content:space-between;margin-bottom:12px">';
             html += '<div><div style="font-weight:600;font-size:14px">' + (inv.invoice_no || inv.vendor_invoice_no) + '</div>';
             html += '<div style="font-size:12px;color:var(--text3);margin-top:3px">' + (inv.invoice_date || '-') + '</div></div>';
-            html += '<div style="text-align:right"><div style="font-weight:600;font-size:15px">₹' + (inv.amount || inv.grand_total || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 }) + '</div>';
+            html += '<div style="text-align:right"><div style="font-weight:600;font-size:15px;color:var(--green)">₹' + (inv.grand_total || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 }) + '</div>';
             html += '<div style="font-size:12px;color:var(--text3)">Total</div></div>';
+            html += '</div>';
+
+            html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;padding:8px;background:var(--surface2);border-radius:6px;font-size:12px">';
+            html += '<div><span style="color:var(--text3);font-weight:500">Without GST</span><br><span style="font-weight:600;font-size:14px">₹' + (inv.subtotal || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 }) + '</span></div>';
+            html += '<div><span style="color:var(--text3);font-weight:500">GST Amount</span><br><span style="font-weight:600;font-size:14px">₹' + (inv.total_gst || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 }) + '</span></div>';
+            html += '<div><span style="color:var(--text3);font-weight:500">With GST</span><br><span style="font-weight:600;font-size:14px;color:var(--green)">₹' + (inv.grand_total || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 }) + '</span></div>';
             html += '</div>';
 
             html += '<div style="margin-top:10px"><span style="color:var(--text3);font-weight:500">Products (' + (inv.items ? inv.items.length : 0) + '):</span></div>';
             if (inv.items && inv.items.length > 0) {
-              html += '<div style="margin-top:8px;max-height:200px;overflow-y:auto">';
+              html += '<div style="margin-top:8px;overflow-x:auto">';
+              html += '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+              html += '<thead><tr style="background:var(--surface2);border-bottom:1px solid var(--border)">';
+              html += '<th style="padding:8px;text-align:left;border-right:1px solid var(--border)">Name</th>';
+              html += '<th style="padding:8px;text-align:center;border-right:1px solid var(--border)">Batch</th>';
+              html += '<th style="padding:8px;text-align:center;border-right:1px solid var(--border)">Exp</th>';
+              html += '<th style="padding:8px;text-align:right;border-right:1px solid var(--border)">MRP</th>';
+              html += '<th style="padding:8px;text-align:right;border-right:1px solid var(--border)">Cost</th>';
+              html += '<th style="padding:8px;text-align:center;border-right:1px solid var(--border)">Qty</th>';
+              html += '<th style="padding:8px;text-align:right;border-right:1px solid var(--border)">Total</th>';
+              html += '<th style="padding:8px;text-align:right;border-right:1px solid var(--border)">GST%</th>';
+              html += '<th style="padding:8px;text-align:right;border-right:1px solid var(--border)">GST Amt</th>';
+              html += '<th style="padding:8px;text-align:right">With GST</th>';
+              html += '</tr></thead><tbody>';
+
               inv.items.forEach(prod => {
-                html += '<div style="background:var(--surface2);padding:8px;border-radius:4px;margin-bottom:5px;font-size:11px">';
-                html += '<div style="font-weight:500">' + (prod.name || prod.product_id) + '</div>';
-                html += '<div style="color:var(--text3);margin-top:3px">Qty: ' + prod.qty + ' | Batch: ' + (prod.batch || '-') + ' | Exp: ' + (prod.expiry || '-') + '</div>';
-                html += '<div style="color:var(--text3)">₹' + (prod.buy_rate || 0) + ' (Cost)' + (prod.mrp ? ' | MRP: ₹' + prod.mrp : '') + '</div>';
-                html += '</div>';
+                var qty = parseFloat(prod.qty) || 0;
+                var cost = parseFloat(prod.buy_rate) || 0;
+                var gstRate = parseFloat(prod.gst) || 0;
+                var totalWithoutGst = qty * cost;
+                var gstAmount = totalWithoutGst * (gstRate / 100);
+                var totalWithGst = totalWithoutGst + gstAmount;
+
+                html += '<tr style="border-bottom:1px solid var(--border)">';
+                html += '<td style="padding:8px;border-right:1px solid var(--border)">' + (prod.name || prod.product_id || 'Unknown') + '</td>';
+                html += '<td style="padding:8px;text-align:center;border-right:1px solid var(--border)">' + (prod.batch || '-') + '</td>';
+                html += '<td style="padding:8px;text-align:center;border-right:1px solid var(--border)">' + (prod.expiry || '-') + '</td>';
+                html += '<td style="padding:8px;text-align:right;border-right:1px solid var(--border)">₹' + (prod.mrp || 0).toFixed(2) + '</td>';
+                html += '<td style="padding:8px;text-align:right;border-right:1px solid var(--border)">₹' + cost.toFixed(2) + '</td>';
+                html += '<td style="padding:8px;text-align:center;border-right:1px solid var(--border)">' + qty + '</td>';
+                html += '<td style="padding:8px;text-align:right;border-right:1px solid var(--border)">₹' + totalWithoutGst.toFixed(2) + '</td>';
+                html += '<td style="padding:8px;text-align:right;border-right:1px solid var(--border)">' + gstRate.toFixed(1) + '%</td>';
+                html += '<td style="padding:8px;text-align:right;border-right:1px solid var(--border)">₹' + gstAmount.toFixed(2) + '</td>';
+                html += '<td style="padding:8px;text-align:right">₹' + totalWithGst.toFixed(2) + '</td>';
+                html += '</tr>';
               });
-              html += '</div>';
+
+              html += '</tbody></table></div>';
             }
             html += '</div>';
             html += '</div>';
@@ -4726,7 +4955,7 @@
             + '<div style="padding:12px;background:var(--surface2);display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)">'
             + '<div><span class="mn" style="font-weight:700;font-size:13px">' + (pur.invNo || 'INV-NA') + '</span> <span style="font-size:11px;color:var(--text3);margin-left:8px">' + fmtDate(pur.date) + '</span></div>'
             + '<div>' + statusBdg + ' <span style="font-weight:700;font-size:13px;margin-left:12px;color:' + p.badge + '">&#8377;' + pt.toFixed(2) + '</span>'
-            + '<button class="btn btn-g btn-sm" style="margin-left:12px" onclick="requireAdmin(\'Edit purchase\',function(){editPurchaseDetail(\'' + pur.id + '\');})">Edit</button></div></div>'
+            + '<button class="btn btn-g btn-sm" style="margin-left:12px" onclick="editPurchaseDetail(\'' + pur.id + '\')">Edit</button></div></div>'
             + '<div style="overflow-x:auto"><table class="li-tbl">'
             + '<thead><tr><th style="padding-left:12px">Product</th><th>Ordered</th><th>Delivered</th><th>Expected</th><th>Expected Date</th></tr></thead><tbody>';
 
@@ -4932,38 +5161,58 @@
       }
     }
 
-    // ─── FIX 5: SALES PRODUCT AUTOCOMPLETE — prefix match + alphabetical ─────────
+    // ─── PRODUCT AUTOCOMPLETE WITH CACHING & DEBOUNCING ─────────
+    var salProdCache = null;
+    var salProdDebounceTimer = null;
+
     async function buildSalProdDrop(inp, drop, tr) {
       if (inp.classList.contains('ac-filled')) { drop.classList.remove('show'); return; }
       var q = inp.value.trim().toLowerCase();
-      if (!q) { drop.classList.remove('show'); return; }
+      if (!q || q.length < 1) { drop.classList.remove('show'); return; }
 
-      try {
-        var stocks = await apiCall('/api/stock');
-        if (!stocks || !Array.isArray(stocks)) {
-          console.log('Stock data error:', stocks);
-          drop.classList.remove('show');
-          return;
-        }
+      // Debounce: wait 200ms after user stops typing before showing dropdown (faster for better UX)
+      clearTimeout(salProdDebounceTimer);
+      salProdDebounceTimer = setTimeout(async function() {
+        try {
+          // Load stock data only once, then cache it
+          if (!salProdCache) {
+            salProdCache = await apiCall('/api/stock');
+          }
 
-        var matches = stocks
-          .filter(function (s) {
-            var qL = q.toLowerCase();
-            return (s.product_name && s.product_name.toLowerCase().includes(qL));
-          })
-          .sort(function (a, b) { return (a.product_name || '').localeCompare(b.product_name || ''); })
-          .slice(0, 10);
+          if (!salProdCache || !Array.isArray(salProdCache)) {
+            console.log('Stock data error:', salProdCache);
+            drop.classList.remove('show');
+            return;
+          }
 
-        if (!matches.length) {
-          console.log('No matches found for:', q);
-          drop.classList.remove('show');
-          return;
-        }
-        positionSalDrop(inp, drop);
-        drop.innerHTML = '';
-        matches.forEach(function (s) {
-          var item = document.createElement('div'); item.className = 'ac-item';
-          item.innerHTML = '<div class="ac-name">' + (s.product_name || '') + '</div>';
+          // Smart matching: prioritize products that START with query, then ones that contain it
+          var prefixMatches = [];
+          var containMatches = [];
+
+          salProdCache.forEach(function (s) {
+            if (!s.product_name) return;
+            var name = s.product_name.toLowerCase();
+            if (name.startsWith(q)) {
+              prefixMatches.push(s);
+            } else if (name.includes(q)) {
+              containMatches.push(s);
+            }
+          });
+
+          var matches = prefixMatches.concat(containMatches)
+            .sort(function (a, b) { return (a.product_name || '').localeCompare(b.product_name || ''); })
+            .slice(0, 15);
+
+          if (!matches.length) {
+            console.log('No matches found for:', q);
+            drop.classList.remove('show');
+            return;
+          }
+          positionSalDrop(inp, drop);
+          drop.innerHTML = '';
+          matches.forEach(function (s) {
+            var item = document.createElement('div'); item.className = 'ac-item';
+            item.innerHTML = '<div class="ac-name">' + (s.product_name || '') + '</div>';
           item.onmousedown = function (e) { e.preventDefault(); fillSalRow(tr, inp, drop, s); };
           drop.appendChild(item);
         });
@@ -4973,6 +5222,7 @@
         console.log('Autocomplete error:', e);
         drop.classList.remove('show');
       }
+      }, 300); // setTimeout delay
     }
     function positionSalDrop(inp, drop) {
       var rect = inp.getBoundingClientRect();
@@ -5149,19 +5399,9 @@
             calcSalRow(tr);
           };
         }
-        // Handle sell rate with price validation
+        // Handle sell rate - allow free manual entry
         else if (f.cls === 'f-sellrate') {
           inp.oninput = function () {
-            var mrpVal = parseFloat(inp.dataset.mrp) || 0;
-            var costPriceVal = parseFloat(inp.dataset.costPrice) || 0;
-            var inputVal = parseFloat(inp.value) || 0;
-            if (inputVal > mrpVal) {
-              inp.value = mrpVal.toFixed(2);
-              toast('❌ Sell rate cannot exceed MRP (₹' + mrpVal.toFixed(2) + ')', 'red');
-            } else if (inputVal < costPriceVal) {
-              inp.value = costPriceVal.toFixed(2);
-              toast('⚠️ Sell rate cannot be less than cost price (₹' + costPriceVal.toFixed(2) + ')', 'amber');
-            }
             calcSalRow(tr);
           };
         }
@@ -5232,14 +5472,7 @@
       var mrp = parseFloat((tr.querySelector('.f-mrp') && tr.querySelector('.f-mrp').value) || 0);
       var costPrice = parseFloat((tr.querySelector('.f-buy') && tr.querySelector('.f-buy').value) || 0);
 
-      // Enforce MRP and cost price constraints
-      if (sellRate > mrp) {
-        sellRate = mrp;
-        if (sellRateEl) sellRateEl.value = mrp.toFixed(2);
-      } else if (sellRate < costPrice && costPrice > 0) {
-        sellRate = costPrice;
-        if (sellRateEl) sellRateEl.value = costPrice.toFixed(2);
-      }
+      // Allow free manual entry - no constraints on sell rate
 
       var disc = parseFloat((tr.querySelector('.f-disc') && tr.querySelector('.f-disc').value) || 0);
 
@@ -5557,7 +5790,7 @@
       var buyerName = '', buyerLeft = '', buyerMid = '', buyerRaw = {};
       if (isRet) {
         buyerName = document.getElementById('r-name').value || 'Customer';
-        buyerRaw = { name: buyerName, door: document.getElementById('r-door').value, addr: document.getElementById('r-addr').value, city: document.getElementById('r-city').value, pin: document.getElementById('r-pin').value, ph: document.getElementById('r-ph').value, dl1: document.getElementById('r-dl1').value, dl2: document.getElementById('r-dl2').value, gst: document.getElementById('r-gst').value, state: document.getElementById('r-state').value };
+        buyerRaw = { name: buyerName, door: document.getElementById('r-door').value, addr: document.getElementById('r-addr').value, city: document.getElementById('r-city').value, pin: document.getElementById('r-pin').value, ph: document.getElementById('r-ph').value, dl1: document.getElementById('r-dl1').value, dl2: document.getElementById('r-dl2').value, gst: document.getElementById('r-gst').value, state: document.getElementById('r-state').value, age: document.getElementById('r-age').value, gender: document.getElementById('r-gender').value };
         if (!buyerRaw.ph.trim()) { toast('Please enter Phone number.', 'amber'); return null; }
         if (!buyerRaw.gst.trim()) { toast('Please enter GSTIN.', 'amber'); return null; }
         if (!buyerRaw.addr.trim()) { toast('Please enter Address.', 'amber'); return null; }
@@ -5836,9 +6069,9 @@
           customer_gstin: data.type === 'retailer' ? (data.buyerRaw.gst || null) : null,
           customer_dl1: data.type === 'retailer' ? (data.buyerRaw.dl1 || null) : null,
           customer_dl2: data.type === 'retailer' ? (data.buyerRaw.dl2 || null) : null,
+          customer_age: data.buyerRaw.age || null,
+          customer_gender: data.buyerRaw.gender || null,
           // Patient-specific
-          customer_age: data.type === 'patient' ? (data.buyerRaw.age || null) : null,
-          customer_gender: data.type === 'patient' ? (data.buyerRaw.gender || null) : null,
           customer_doctor_name: data.type === 'patient' ? (data.buyerRaw.doc || null) : null,
           customer_hospital_name: data.type === 'patient' ? (data.buyerRaw.hosp || null) : null,
           customer_doctor_phone: data.type === 'patient' ? (data.buyerRaw.docPh || null) : null,
@@ -6379,7 +6612,7 @@
           if (!btn) return;
           var id = btn.getAttribute('data-pfid');
           if (btn.classList.contains('pf-finalize-btn')) { pfFinalizeDraft(id); }
-          else if (btn.classList.contains('pf-edit-btn')) { requireAdmin('Edit draft', function () { pfEditProforma(id); }); }
+          else if (btn.classList.contains('pf-edit-btn')) { pfEditProforma(id); }
           else if (btn.classList.contains('pf-download-btn')) { downloadProformaPDF(id, btn.getAttribute('data-pftype')); }
           else if (btn.classList.contains('pf-del-btn')) { requireAdmin('Delete draft', function () { pfDelete(id); }); }
         };
@@ -6454,7 +6687,7 @@
           if (!btn) return;
           var id = btn.getAttribute('data-pfid');
           if (btn.classList.contains('pf-invoice-btn')) { pfConvertToInvoice(id); }
-          else if (btn.classList.contains('pf-edit-btn')) { requireAdmin('Edit proforma', function () { pfEditProforma(id); }); }
+          else if (btn.classList.contains('pf-edit-btn')) { pfEditProforma(id); }
           else if (btn.classList.contains('pf-download-btn')) { downloadProformaPDF(id, btn.getAttribute('data-pftype')); }
           else if (btn.classList.contains('pf-del-btn')) { requireAdmin('Delete proforma', function () { pfDelete(id, 'proformas'); }); }
         };
