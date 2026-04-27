@@ -10,20 +10,22 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from pathlib import Path
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from uuid import uuid4
 from dotenv import load_dotenv
+import time
 
 from backend.supabase_client import (
+    supabase,
     get_vendors, create_vendor, update_vendor, delete_vendor, get_vendor_by_gstin, get_vendor_by_phone, get_vendor_by_id,
     get_products, create_product, update_product, delete_product, get_product_by_id,
     get_customers, create_customer, update_customer, delete_customer, get_customer_by_id, get_customer_by_phone, get_customer_by_gstin,
     get_purchase_invoices, create_purchase_invoice, update_purchase_invoice, delete_purchase_invoice, get_purchase_invoice_by_id, get_purchase_invoices_by_vendor,
-    get_purchase_items, create_purchase_items, delete_purchase_items, get_purchase_items_by_product, get_latest_purchase_item_for_product,
+    get_purchase_items, create_purchase_items, delete_purchase_items,
     get_drafts, create_draft, update_draft, delete_draft, get_draft_by_id, lookup_draft_by_phone, lookup_draft_by_gstin, count_drafts_by_phone,
-    get_invoices, create_invoice, update_invoice, delete_invoice, get_invoice_by_id, get_invoices_by_customer,
-    get_stock_ledger, add_stock_ledger_entry, get_product_stock, get_dashboard_stats,
-    get_sales, create_sale, get_sale_by_id, get_expiring_items
+    get_invoices, create_invoice, update_invoice, delete_invoice, get_invoice_by_id, get_invoices_by_customer, get_patient_invoices,
+    get_stock_ledger, add_stock_ledger_entry, get_product_stock, get_dashboard_stats, get_stock_summary_fast,
+    get_sales, create_sale, get_expiring_items
 )
 
 load_dotenv()
@@ -37,6 +39,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Cache for stock summary (refresh every 30 seconds)
+_stock_cache = {"data": None, "timestamp": 0}
+STOCK_CACHE_TTL = 30  # seconds
+
+# Cache for products list (refresh every 60 seconds)
+_products_cache = {"data": None, "timestamp": 0}
+PRODUCTS_CACHE_TTL = 60  # seconds
+
+# Cache for purchase invoices (refresh every 30 seconds)
+_purchase_invoices_cache = {"data": None, "timestamp": 0}
+PURCHASE_INVOICES_CACHE_TTL = 30  # seconds
+
+# Cache for patient tracker (refresh every 30 seconds)
+_patient_tracker_cache = {"data": None, "timestamp": 0}
+PATIENT_TRACKER_CACHE_TTL = 30  # seconds
 
 # ============================================================================
 # PYDANTIC MODELS
@@ -388,9 +406,17 @@ async def delete_existing_vendor(vendor_id: str):
 
 @app.get("/api/products")
 async def get_all_products():
-    """Get all products"""
+    """Get all products - with caching"""
     try:
+        current_time = time.time()
+        # Return cached data if still fresh
+        if _products_cache["data"] is not None and (current_time - _products_cache["timestamp"]) < PRODUCTS_CACHE_TTL:
+            return _products_cache["data"]
+
+        # Fetch fresh data
         products = await get_products()
+        _products_cache["data"] = products
+        _products_cache["timestamp"] = current_time
         return products
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -413,6 +439,9 @@ async def create_new_product(product: ProductModel):
     """Create new product"""
     try:
         result = await create_product(product.dict(exclude_none=True))
+        # Invalidate products cache since new product added
+        _products_cache["data"] = None
+        _products_cache["timestamp"] = 0
         return {"id": result["id"], "message": "Product created successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -425,6 +454,9 @@ async def update_existing_product(product_id: str, product: ProductUpdateModel):
         if not existing:
             raise HTTPException(status_code=404, detail="Product not found")
         await update_product(product_id, product.dict(exclude_none=True))
+        # Invalidate products cache since product updated
+        _products_cache["data"] = None
+        _products_cache["timestamp"] = 0
         return {"message": "Product updated successfully"}
     except HTTPException:
         raise
@@ -548,11 +580,40 @@ async def delete_existing_customer(customer_id: str):
 
 @app.get("/api/purchase-invoices")
 async def get_all_purchase_invoices():
-    """Get all purchase invoices"""
+    """Get all purchase invoices - with caching and batch queries"""
     try:
+        current_time = time.time()
+        # Return cached data if still fresh
+        if _purchase_invoices_cache["data"] is not None and (current_time - _purchase_invoices_cache["timestamp"]) < PURCHASE_INVOICES_CACHE_TTL:
+            return _purchase_invoices_cache["data"]
+
+        # Fetch invoices
         invoices = await get_purchase_invoices()
+
+        # Fetch ALL purchase items at once (not per invoice)
+        try:
+            all_items_response = supabase.table("purchase_items").select("*").execute()
+            all_items = all_items_response.data if all_items_response.data else []
+        except Exception as e:
+            print(f"Error fetching purchase items: {e}")
+            all_items = []
+
+        # Group items by invoice_id for fast lookup
+        items_by_invoice = {}
+        for item in all_items:
+            inv_id = item.get("purchase_invoice_id")
+            if inv_id:
+                if inv_id not in items_by_invoice:
+                    items_by_invoice[inv_id] = []
+                items_by_invoice[inv_id].append(item)
+
+        # Add items to invoices
         for inv in invoices:
-            inv["items"] = await get_purchase_items(inv["id"])
+            inv["items"] = items_by_invoice.get(inv["id"], [])
+
+        # Cache the result
+        _purchase_invoices_cache["data"] = invoices
+        _purchase_invoices_cache["timestamp"] = current_time
         return invoices
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -573,7 +634,7 @@ async def get_purchase_invoice(invoice_id: str):
 
 @app.post("/api/purchase-invoices")
 async def create_new_purchase_invoice(invoice: PurchaseInvoiceModel):
-    """Create purchase invoice with items and stock update"""
+    """Create purchase invoice with items and stock update - optimized"""
     try:
         vendor = await get_vendor_by_id(invoice.vendor_id)
         if not vendor:
@@ -587,13 +648,25 @@ async def create_new_purchase_invoice(invoice: PurchaseInvoiceModel):
 
         created_invoice = await create_purchase_invoice(invoice_data)
 
+        # Invalidate purchase invoices cache
+        _purchase_invoices_cache["data"] = None
+        _purchase_invoices_cache["timestamp"] = 0
+
         if invoice.items:
-            items_to_insert = []
+            # Batch fetch all products at once (not per item)
+            products = await get_products()
+            product_map = {p["id"]: p for p in products}
+
+            # Validate all products exist
             for item in invoice.items:
-                product = await get_product_by_id(item["product_id"])
-                if not product:
+                if item["product_id"] not in product_map:
                     raise HTTPException(status_code=404, detail=f"Product not found: {item['product_id']}")
 
+            # Prepare all items to insert
+            items_to_insert = []
+            ledger_entries = []
+
+            for item in invoice.items:
                 item_data = {
                     "purchase_invoice_id": created_invoice["id"],
                     "product_id": item["product_id"],
@@ -608,15 +681,25 @@ async def create_new_purchase_invoice(invoice: PurchaseInvoiceModel):
                 }
                 items_to_insert.append(item_data)
 
-                await add_stock_ledger_entry(
-                    product_id=item["product_id"],
-                    change_qty=item["qty"],
-                    reason="purchase",
-                    reference_id=created_invoice["id"]
-                )
+                # Prepare ledger entry (batch insert later)
+                ledger_entries.append({
+                    "product_id": item["product_id"],
+                    "change_qty": item["qty"],
+                    "reason": "purchase",
+                    "reference_id": created_invoice["id"]
+                })
 
+            # Batch insert items
             if items_to_insert:
                 await create_purchase_items(items_to_insert)
+
+            # Batch insert stock ledger entries
+            if ledger_entries:
+                try:
+                    supabase.table("stock_ledger").insert(ledger_entries).execute()
+                except Exception as e:
+                    print(f"Error inserting stock ledger entries: {e}")
+                    # Continue even if ledger insert fails
 
         return {"id": created_invoice["id"], "message": "Purchase invoice created successfully"}
     except HTTPException:
@@ -979,62 +1062,179 @@ async def delete_existing_invoice(invoice_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 # ============================================================================
+# PATIENT TRACKER ENDPOINTS
+# ============================================================================
+
+@app.get("/api/patient-tracker")
+async def get_patient_tracker(name: str = None, type: str = "patient"):
+    """Get invoices by type with optional name filtering - fast and cached"""
+    try:
+        current_time = time.time()
+
+        # Only cache when no name filter (full list is stable)
+        if not name and _patient_tracker_cache["data"] is not None and (current_time - _patient_tracker_cache["timestamp"]) < PATIENT_TRACKER_CACHE_TTL:
+            return _patient_tracker_cache["data"]
+
+        # Fetch invoices (filtered by type and optional name)
+        invoices = await get_patient_invoices(name_filter=name, invoice_type=type)
+
+        # Group invoices by customer_id for organized response
+        patients_dict = {}
+        for invoice in invoices:
+            customer_id = invoice.get("customer_id")
+            patient_name = invoice.get("customer_name", "Unknown")
+
+            if customer_id not in patients_dict:
+                patients_dict[customer_id] = {
+                    "customer_id": customer_id,
+                    "patient_name": patient_name,
+                    "customer_phone": invoice.get("customer_phone"),
+                    "total_invoices": 0,
+                    "total_amount": 0,
+                    "invoices": []
+                }
+
+            # Add invoice to patient's list
+            patients_dict[customer_id]["invoices"].append({
+                "id": invoice.get("id"),
+                "invoice_number": invoice.get("invoice_number") or invoice.get("invoice_no"),
+                "invoice_date": invoice.get("invoice_date"),
+                "grand_total": invoice.get("grand_total"),
+                "payment_status": invoice.get("payment_status"),
+                "amount_received": invoice.get("amount_received"),
+                "items": invoice.get("items", []),
+                "notes": invoice.get("notes")
+            })
+
+            # Update totals
+            patients_dict[customer_id]["total_invoices"] += 1
+            patients_dict[customer_id]["total_amount"] += invoice.get("grand_total", 0)
+
+        result = list(patients_dict.values())
+
+        # Cache only when no name filter
+        if not name:
+            _patient_tracker_cache["data"] = result
+            _patient_tracker_cache["timestamp"] = current_time
+
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/patient-tracker/invoice/{invoice_id}")
+async def get_patient_invoice_details(invoice_id: str):
+    """Get full details of a patient invoice"""
+    try:
+        invoice = await get_invoice_by_id(invoice_id)
+        if not invoice:
+            raise HTTPException(status_code=404, detail="Invoice not found")
+
+        # Verify it's a patient invoice
+        if invoice.get("type") != "patient":
+            raise HTTPException(status_code=403, detail="This is not a patient invoice")
+
+        return {
+            "id": invoice.get("id"),
+            "customer_id": invoice.get("customer_id"),
+            "invoice_number": invoice.get("invoice_number") or invoice.get("invoice_no"),
+            "invoice_date": invoice.get("invoice_date"),
+            "customer_name": invoice.get("customer_name"),
+            "customer_phone": invoice.get("customer_phone"),
+            "customer_address": invoice.get("customer_address"),
+            "items": invoice.get("items", []),
+            "subtotal": invoice.get("subtotal"),
+            "total_gst": invoice.get("total_gst"),
+            "discount_amount": invoice.get("discount_amount"),
+            "grand_total": invoice.get("grand_total"),
+            "payment_status": invoice.get("payment_status"),
+            "amount_received": invoice.get("amount_received"),
+            "payment_mode": invoice.get("payment_mode"),
+            "notes": invoice.get("notes"),
+            "created_at": invoice.get("created_at"),
+            "type": invoice.get("type")
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/customer-names")
+async def get_customer_names_suggestions(customer_type: str = "patient", q: str = ""):
+    """Get unique customer names for autocomplete (filtered by type and name query)"""
+    try:
+        name_query = q.strip()
+
+        # Get invoices filtered by type
+        response = supabase.table("invoices").select("customer_name").eq("type", customer_type).execute()
+        invoices = response.data if response.data else []
+
+        # Extract unique customer names
+        unique_names = list(set(inv.get("customer_name", "").strip() for inv in invoices if inv.get("customer_name")))
+        unique_names.sort()
+
+        # Filter by query if provided (case-insensitive partial match)
+        if name_query:
+            unique_names = [name for name in unique_names if name_query.lower() in name.lower()]
+
+        # Limit to 10 suggestions
+        return unique_names[:10]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/customer-details")
+async def get_customer_details(customer_type: str = "patient", customer_name: str = ""):
+    """Get complete customer details from invoices and drafts for that customer"""
+    try:
+        if not customer_name:
+            raise HTTPException(status_code=400, detail="customer_name required")
+
+        # Get all invoices for this customer
+        inv_response = supabase.table("invoices").select("*").eq("type", customer_type).eq("customer_name", customer_name).order("invoice_date", desc=True).execute()
+        invoices = inv_response.data if inv_response.data else []
+
+        # Get all drafts for this customer
+        drafts_response = supabase.table("drafts").select("*").eq("type", customer_type).eq("customer_name", customer_name).order("created_at", desc=True).execute()
+        drafts = drafts_response.data if drafts_response.data else []
+
+        # Merge all fields from all sources (most recent non-empty value wins)
+        merged_details = {"customer_name": customer_name}
+
+        # Process invoices first (older data)
+        for invoice in reversed(invoices):
+            for key, value in (invoice or {}).items():
+                if value and key not in merged_details:
+                    merged_details[key] = value
+
+        # Process drafts second (newer data, takes precedence)
+        for draft in reversed(drafts):
+            for key, value in (draft or {}).items():
+                if value and key not in merged_details:
+                    merged_details[key] = value
+
+        return merged_details if len(merged_details) > 1 else {}
+    except Exception as e:
+        print(f"Error getting customer details: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================================================
 # STOCK MANAGEMENT ENDPOINTS
 # ============================================================================
 
 @app.get("/api/stock")
 async def get_all_stock_summary():
-    """Get stock summary for all products"""
+    """Get stock summary for all products - with caching and batch queries"""
     try:
-        products = await get_products()
-        stock_summary = []
+        current_time = time.time()
+        # Return cached data if still fresh
+        if _stock_cache["data"] is not None and (current_time - _stock_cache["timestamp"]) < STOCK_CACHE_TTL:
+            return _stock_cache["data"]
 
-        for product in products:
-            product_id = product["id"]
-            # Get all purchase items for this product
-            all_purchase_items = await get_purchase_items_by_product(product_id)
-            purchased = sum(item.get("qty", 0) for item in all_purchase_items) if all_purchase_items else 0
+        # Fetch fresh data using fast batch queries
+        stock_summary = await get_stock_summary_fast()
 
-            # Get latest batch and expiry from most recent purchase (sorted by created_at DESC)
-            latest_batch = None
-            latest_expiry = None
-            latest_item = await get_latest_purchase_item_for_product(product_id)
-            if latest_item:
-                latest_batch = latest_item.get("batch")
-                latest_expiry = latest_item.get("expiry")
-
-            # Get all invoice items for this product (sold) - from JSONB items in invoices table
-            try:
-                invoices = await get_invoices()
-                all_invoice_items = []
-                for invoice in invoices:
-                    for item in invoice.get("items", []):
-                        if item.get("product_id") == product_id:
-                            all_invoice_items.append(item)
-                sold = sum(item.get("qty", 0) for item in all_invoice_items) if all_invoice_items else 0
-            except Exception as e:
-                print(f"Error calculating sold qty for product {product_id}: {e}")
-                sold = 0
-
-            available = purchased - sold
-
-            stock_summary.append({
-                "product_id": product_id,
-                "product_name": product.get("name"),
-                "purchased": purchased,
-                "sold": sold,
-                "available": max(0, available),
-                "cost_price": product.get("cost_price"),
-                "mrp": product.get("mrp"),
-                "hsn_code": product.get("hsn_code"),
-                "pack": product.get("pack"),
-                "company": product.get("company"),
-                "scheme": product.get("scheme"),
-                "gst_rate": product.get("gst_rate"),
-                "batch_no": latest_batch,
-                "expiry_date": latest_expiry
-            })
-
+        # Cache the result
+        _stock_cache["data"] = stock_summary
+        _stock_cache["timestamp"] = current_time
         return stock_summary
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

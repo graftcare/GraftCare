@@ -214,38 +214,19 @@ async def get_customer_by_gstin(gstin):
 # ============================================================================
 
 async def get_purchase_items_by_invoice(invoice_id):
-    """Get items from purchase_items table with product names"""
+    """Get items from purchase_items table"""
     try:
         response = supabase.table("purchase_items").select("*").eq("purchase_invoice_id", invoice_id).execute()
-        items = response.data if response.data else []
-
-        # Enrich items with product names from products table
-        if items:
-            for item in items:
-                if item.get('product_id'):
-                    product = await get_product_by_id(item['product_id'])
-                    if product:
-                        item['name'] = product.get('name', 'Unknown')
-                        item['product_name'] = product.get('name', 'Unknown')
-
-        return items
+        return response.data if response.data else []
     except Exception as e:
         print(f"Error fetching purchase items: {e}")
         return []
 
 async def get_purchase_invoices():
-    """Get all purchase invoices with items (from JSONB or purchase_items table)"""
+    """Get all purchase invoices - items will be fetched separately by API endpoint"""
     try:
         response = supabase.table("purchase_invoices").select("*").order("invoice_date", desc=True).execute()
-        result = []
-        if response.data:
-            for inv in response.data:
-                # If items JSONB column is empty, fetch from purchase_items table
-                if not inv.get('items'):
-                    items_from_table = await get_purchase_items_by_invoice(inv['id'])
-                    inv['items'] = items_from_table if items_from_table else []
-                result.append(inv)
-        return result
+        return response.data if response.data else []
     except Exception as e:
         print(f"Error fetching purchase invoices: {e}")
         return []
@@ -644,6 +625,23 @@ async def delete_invoice_items(invoice_id):
         print(f"Error deleting invoice items: {e}")
         raise
 
+async def get_patient_invoices(name_filter=None, invoice_type="patient"):
+    """Get invoices filtered by type with optional name filtering"""
+    try:
+        query = supabase.table("invoices").select(
+            "id, invoice_number, invoice_no, invoice_date, customer_id, customer_name, "
+            "customer_phone, grand_total, payment_status, amount_received, payment_mode, items, notes, type"
+        ).eq("type", invoice_type).order("invoice_date", desc=True)
+
+        if name_filter:
+            query = query.ilike("customer_name", f"%{name_filter}%")
+
+        response = query.execute()
+        return response.data if response.data else []
+    except Exception as e:
+        print(f"Error fetching invoices: {e}")
+        return []
+
 # ============================================================================
 # STOCK LEDGER - Database operations
 # ============================================================================
@@ -839,6 +837,88 @@ async def get_expiring_items(days_ahead=None):
         return expiring
     except Exception as e:
         print(f"Error getting expiring items: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
+async def get_stock_summary_fast():
+    """Get stock summary with TRUE batch queries (no N+1)"""
+    try:
+        products = await get_products()
+        if not products:
+            return []
+
+        # Fetch ALL purchase items ONCE (not per product)
+        try:
+            purchase_response = supabase.table("purchase_items").select("product_id,qty,batch,expiry,created_at").order("created_at", desc=True).execute()
+            all_purchase_items = purchase_response.data if purchase_response.data else []
+        except Exception as e:
+            print(f"Error fetching purchase items: {e}")
+            all_purchase_items = []
+
+        # Fetch invoices ONCE
+        invoices = await get_invoices()
+
+        # Group purchase items by product_id
+        purchase_map = {}
+        latest_map = {}
+        for item in all_purchase_items:
+            prod_id = item.get("product_id")
+            if prod_id:
+                if prod_id not in purchase_map:
+                    purchase_map[prod_id] = []
+                    latest_map[prod_id] = item  # First item is latest (already ordered desc)
+                purchase_map[prod_id].append(item)
+
+        # Build sold items map
+        sold_map = {}
+        for invoice in invoices:
+            for item in invoice.get("items", []):
+                prod_id = item.get("product_id")
+                if prod_id:
+                    if prod_id not in sold_map:
+                        sold_map[prod_id] = 0
+                    sold_map[prod_id] += item.get("qty", 0)
+
+        # Build stock summary
+        stock_summary = []
+        for product in products:
+            product_id = product["id"]
+
+            # Get purchased qty from grouped data
+            purchased_items = purchase_map.get(product_id, [])
+            purchased = sum(item.get("qty", 0) for item in purchased_items)
+
+            # Get sold qty from map
+            sold = sold_map.get(product_id, 0)
+
+            # Get latest batch/expiry from map
+            latest_item = latest_map.get(product_id)
+            latest_batch = latest_item.get("batch") if latest_item else None
+            latest_expiry = latest_item.get("expiry") if latest_item else None
+
+            available = purchased - sold
+
+            stock_summary.append({
+                "product_id": product_id,
+                "product_name": product.get("name"),
+                "purchased": purchased,
+                "sold": sold,
+                "available": max(0, available),
+                "cost_price": product.get("cost_price"),
+                "mrp": product.get("mrp"),
+                "hsn_code": product.get("hsn_code"),
+                "pack": product.get("pack"),
+                "company": product.get("company"),
+                "scheme": product.get("scheme"),
+                "gst_rate": product.get("gst_rate"),
+                "batch_no": latest_batch,
+                "expiry_date": latest_expiry
+            })
+
+        return stock_summary
+    except Exception as e:
+        print(f"Error getting stock summary: {e}")
         import traceback
         traceback.print_exc()
         return []

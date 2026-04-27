@@ -2282,18 +2282,6 @@
           <div class="pg-title">Vendor Inventory</div>
           <div class="pg-sub">Manage all vendors — create or view details.</div>
 
-          <!-- Add Vendor Form -->
-          <div class="card">
-            <div class="card-t">Add New Vendor</div>
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-bottom:15px">
-              <div class="fld"><label>Company Name *</label><input id="add-vendor-name" placeholder="ABC Pharma Ltd" /></div>
-              <div class="fld"><label>Contact Person</label><input id="add-vendor-contact" placeholder="John Doe" /></div>
-              <div class="fld"><label>Phone Number *</label><input id="add-vendor-phone" placeholder="9876543210" /></div>
-              <div class="fld"><label>GSTIN *</label><input id="add-vendor-gstin" placeholder="36ABCDE1234F1Z5" /></div>
-            </div>
-            <button class="btn btn-b" onclick="addVendor()">Add Vendor</button>
-          </div>
-
           <!-- Vendors List -->
           <div id="vendors-list">
             <div class="card">
@@ -2314,6 +2302,19 @@
         <div id="pg-stock" class="page">
           <div class="pg-title">Current Stock</div>
           <div class="pg-sub">All medicines — auto-updated from purchases</div>
+
+          <!-- Stock Search -->
+          <div class="card" style="margin-bottom:16px">
+            <div style="display:flex;gap:12px;align-items:flex-end;margin-bottom:12px">
+              <div class="fld" style="flex:1;position:relative">
+                <label>Search Stock by Name</label>
+                <input type="text" id="stock-search-input" placeholder="Type medicine name..." autocomplete="off" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+                <div id="stock-search-dropdown" class="ac-dropdown" style="position:absolute;top:calc(100% + 2px);left:0;right:0;background:var(--bg);border:1px solid var(--border);border-radius:4px;max-height:300px;overflow-y:auto;display:none;z-index:10000;box-shadow:0 2px 8px rgba(0,0,0,0.15)"></div>
+              </div>
+              <button class="btn btn-g" onclick="clearStockSearch()" style="padding:8px 16px;height:32px;font-size:13px">Clear</button>
+            </div>
+          </div>
+
           <div id="stock-alerts"></div>
           <div class="card" style="padding:0;overflow:hidden">
             <div style="overflow-x:auto">
@@ -2795,12 +2796,20 @@
 
             <!-- Name Filter UI -->
             <div id="pt-filter-name" class="pt-filter-ui">
-              <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:flex-end">
-                <div class="fld">
-                  <label>Mobile Number (10 Digits) *</label>
-                  <input type="text" id="pt-search-phone" maxlength="10" placeholder="Enter 10-digit mobile number">
+              <div style="display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:flex-end;margin-bottom:12px">
+                <div class="fld" style="min-width:120px">
+                  <label>Type *</label>
+                  <select id="pt-search-type" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+                    <option value="patient">Patient</option>
+                    <option value="retailer">Retailer</option>
+                  </select>
                 </div>
-                <button class="btn btn-p" onclick="searchPTByDetails()"
+                <div class="fld" style="position:relative;z-index:100">
+                  <label>Name (min. 1 character) *</label>
+                  <input type="text" id="pt-search-name" placeholder="Enter name..." autocomplete="off" oninput="showPTNameSuggestions()" style="border:1px solid var(--border);padding:8px;border-radius:4px;width:100%;background:var(--bg);color:var(--text)">
+                  <div id="pt-suggestions" class="ac-dropdown" style="position:absolute;top:calc(100% + 2px);left:0;right:0;background:var(--bg);border:1px solid var(--border);border-radius:4px;max-height:300px;overflow-y:auto;display:none;z-index:10000;box-shadow:0 2px 8px rgba(0,0,0,0.15)"></div>
+                </div>
+                <button class="btn btn-p" onclick="searchPTByName()"
                   style="height:32px;padding:0 16px;font-size:13px">Search</button>
               </div>
             </div>
@@ -2992,26 +3001,38 @@
 
   <!-- EDIT STOCK MODAL -->
   <div class="modal-bg" id="edit-modal">
-    <div class="modal">
-      <div class="modal-title">Edit stock item</div>
-      <input type="hidden" id="edit-idx" />
+    <div class="modal" style="max-width:700px">
+      <div class="modal-title">Edit Stock Item</div>
+      <input type="hidden" id="edit-product-id" />
       <div class="g2" style="margin-bottom:10px">
-        <div class="fld"><label>Medicine name</label><input id="e-name" /></div>
+        <div class="fld"><label>Product Name</label><input id="e-product-name" /></div>
+        <div class="fld"><label>Scheme</label><input id="e-scheme" /></div>
+      </div>
+      <div class="g2" style="margin-bottom:10px">
         <div class="fld"><label>Pack</label><input id="e-pack" /></div>
+        <div class="fld"><label>HSN Code</label><input id="e-hsn-code" /></div>
       </div>
       <div class="g2" style="margin-bottom:10px">
-        <div class="fld"><label>Batch no.</label><input id="e-batch" /></div>
-        <div class="fld"><label>Expiry (MM/YY)</label><input id="e-exp" placeholder="07/27" /></div>
+        <div class="fld"><label>Company</label><input id="e-company" /></div>
+        <div class="fld"><label>Batch No.</label><input id="e-batch-no" /></div>
       </div>
-      <div class="g3" style="margin-top:10px">
-        <div class="fld"><label>Qty in stock (strips)</label><input type="number" step="1" min="1" id="e-qty" required>
-        </div>
+      <div class="g2" style="margin-bottom:10px">
+        <div class="fld"><label>Expiry Date (MM/YY)</label><input id="e-expiry-date" placeholder="07/27" /></div>
+        <div class="fld"><label>Opening Stock</label><input type="number" id="e-opening-stock" step="1" /></div>
+      </div>
+      <div class="g3" style="margin-bottom:10px">
+        <div class="fld"><label>Purchased</label><input type="number" id="e-purchased" step="1" readonly style="background:#f5f5f5" /></div>
+        <div class="fld"><label>Sold</label><input type="number" id="e-sold" step="1" readonly style="background:#f5f5f5" /></div>
+        <div class="fld"><label>Available</label><input type="number" id="e-available" step="1" readonly style="background:#f5f5f5" /></div>
+      </div>
+      <div class="g3" style="margin-bottom:10px">
         <div class="fld"><label>MRP (&#8377;)</label><input type="number" id="e-mrp" step="0.01" /></div>
-        <div class="fld"><label>Min Stock</label><input type="number" id="e-min" value="20" /></div>
+        <div class="fld"><label>Cost Price (&#8377;)</label><input type="number" id="e-cost-price" step="0.01" /></div>
+        <div class="fld"><label>GST %</label><input type="number" id="e-gst-rate" step="0.01" /></div>
       </div>
       <div class="modal-actions">
-        <button class="btn btn-p" onclick="saveEdit()">Update</button>
-        <button class="btn btn-g" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-p" onclick="saveStockEdit()">Save Changes</button>
+        <button class="btn btn-g" onclick="closeEditModal()">Cancel</button>
       </div>
     </div>
   </div>
@@ -3512,7 +3533,7 @@
 
       try {
         // Get product details for price validation
-        var products = await apiCall('/api/products');
+        var products = await getProductsWithCache();
         var product = products.find(p => p.id === productId);
 
         if (!product) {
@@ -3687,7 +3708,7 @@
         }
         var q = prodInp.value.trim();
         if (q.length >= 1) {
-          buildPuProdDrop(prodInp, prodDrop, tr);
+          debounceProductSearch(prodInp, prodDrop, tr);
         } else {
           prodDrop.classList.remove('show');
           prodDrop.innerHTML = '';
@@ -3779,6 +3800,27 @@
       document.getElementById('pu-items').appendChild(tr);
     }
 
+    // Global caches
+    var productsListCache = null;
+
+    async function getProductsWithCache() {
+      if (!productsListCache) {
+        productsListCache = await apiCall('/api/products');
+      }
+      return productsListCache;
+    }
+
+    // Debounce timers and cache for product search
+    var puProdDebounceTimer = null;
+    var puStockCache = null;
+
+    function debounceProductSearch(inp, drop, tr) {
+      clearTimeout(puProdDebounceTimer);
+      puProdDebounceTimer = setTimeout(function() {
+        buildPuProdDrop(inp, drop, tr);
+      }, 300);  // Wait 300ms after user stops typing
+    }
+
     // FIX: buildPuProdDrop uses startsWith (prefix match) + sorted alphabetically
     // FIX: after selection, dropdown is fully hidden (innerHTML='', classList.remove)
     async function buildPuProdDrop(inp, drop, tr) {
@@ -3786,7 +3828,11 @@
       if (!q) { drop.classList.remove('show'); return; }
 
       try {
-        var stocks = await apiCall('/api/stock');
+        // Use cache if available, otherwise fetch fresh data
+        if (!puStockCache) {
+          puStockCache = await apiCall('/api/stock');
+        }
+        var stocks = puStockCache;
         if (!stocks || !Array.isArray(stocks)) { drop.classList.remove('show'); return; }
 
         var matches = stocks
@@ -4249,9 +4295,9 @@
           return;
         }
 
-        // Get all products once
+        // Get all products once (cached)
         console.log('Fetching products...');
-        var allProducts = await apiCall('/api/products', 'GET');
+        var allProducts = await getProductsWithCache();
         console.log('Products fetched:', allProducts.length);
 
         var productMap = {};
@@ -4297,6 +4343,7 @@
               gst_rate: gstRate
             });
             productId = newProduct.id;
+            productsListCache = null;  // Clear cache since new product added
             console.log('Product created with ID:', productId);
           }
 
@@ -4433,7 +4480,7 @@
     async function renderStock() {
       try {
         var stocks = await apiCall('/api/stock');
-        var products = await apiCall('/api/products');
+        var products = await getProductsWithCache();
 
         var productMap = {};
         if (products && Array.isArray(products)) {
@@ -4453,42 +4500,127 @@
           var mrp = product.mrp || s.mrp || 0;
           var gst = s.gst_rate || 0;
 
-          var inputStyle = 'style="width:100%;padding:4px;border:1px solid var(--border);border-radius:4px;box-sizing:border-box"';
-          var smallInputStyle = 'style="width:80px;padding:4px;border:1px solid var(--border);border-radius:4px;box-sizing:border-box"';
-
           return '<tr style="border-bottom:1px solid var(--border)">' +
             '<td style="padding:8px;text-align:center;font-size:12px">' + (i+1) + '</td>' +
-            '<td style="padding:8px;font-weight:500"><input type="text" value="' + (s.product_name || '') + '" data-field="name" data-product-id="' + s.product_id + '" ' + inputStyle + ' placeholder="Product name" onchange="updateStockField(this)"></td>' +
-            '<td style="padding:8px;text-align:center"><input type="text" value="' + (s.scheme || '') + '" data-field="scheme" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="H" onchange="updateStockField(this)"></td>' +
-            '<td style="padding:8px;text-align:center"><input type="text" value="' + (s.pack || '') + '" data-field="pack" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="10" onchange="updateStockField(this)"></td>' +
-            '<td style="padding:8px;text-align:center"><input type="text" value="' + (s.hsn_code || '') + '" data-field="hsn_code" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="30049099" onchange="updateStockField(this)"></td>' +
-            '<td style="padding:8px;text-align:center"><input type="text" value="' + (s.company || '') + '" data-field="company" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="INTAS" onchange="updateStockField(this)"></td>' +
-            '<td style="padding:8px;text-align:center"><input type="text" value="' + (s.batch_no || '') + '" data-field="batch_no" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="-" onchange="updateStockField(this)"></td>' +
-            '<td style="padding:8px;text-align:center"><input type="text" value="' + (s.expiry_date ? s.expiry_date.substring(0, 7) : '') + '" data-field="expiry_date" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="MM/YY" onchange="updateStockField(this)"></td>' +
-            '<td style="padding:8px;text-align:center"><input type="number" value="0" data-field="opening_stock" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="0" onchange="updateStockField(this)"></td>' +
-            '<td style="padding:8px;text-align:center"><input type="number" value="' + (s.purchased || 0) + '" data-field="purchased" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="0" onchange="updateStockField(this)"></td>' +
-            '<td style="padding:8px;text-align:center"><input type="number" value="' + (s.sold || 0) + '" data-field="sold" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="0" onchange="updateStockField(this)"></td>' +
-            '<td style="padding:8px;text-align:center;font-weight:600;color:var(--green)"><input type="number" value="' + (s.available || 0) + '" data-field="available" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="0" onchange="updateStockField(this)"></td>' +
-            '<td style="padding:8px;text-align:right"><input type="number" step="0.01" value="' + (parseFloat(mrp) || 0).toFixed(2) + '" data-field="mrp" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="0.00" onchange="updateStockField(this)"></td>' +
-            '<td style="padding:8px;text-align:right"><input type="number" step="0.01" value="' + (parseFloat(cost) || 0).toFixed(2) + '" data-field="cost_price" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="0.00" onchange="updateStockField(this)"></td>' +
-            '<td style="padding:8px;text-align:center"><input type="number" step="0.01" value="' + (gst || 0) + '" data-field="gst_rate" data-product-id="' + s.product_id + '" ' + smallInputStyle + ' placeholder="0" onchange="updateStockField(this)"></td>' +
+            '<td style="padding:8px;font-weight:500">' + (s.product_name || '') + '</td>' +
+            '<td style="padding:8px;text-align:center">' + (s.scheme || '') + '</td>' +
+            '<td style="padding:8px;text-align:center">' + (s.pack || '') + '</td>' +
+            '<td style="padding:8px;text-align:center">' + (s.hsn_code || '') + '</td>' +
+            '<td style="padding:8px;text-align:center">' + (s.company || '') + '</td>' +
+            '<td style="padding:8px;text-align:center">' + (s.batch_no || '') + '</td>' +
+            '<td style="padding:8px;text-align:center">' + (s.expiry_date ? s.expiry_date.substring(0, 7) : '') + '</td>' +
+            '<td style="padding:8px;text-align:center">' + (s.openingStock || 0) + '</td>' +
+            '<td style="padding:8px;text-align:center">' + (s.purchased || 0) + '</td>' +
+            '<td style="padding:8px;text-align:center">' + (s.sold || 0) + '</td>' +
+            '<td style="padding:8px;text-align:center;font-weight:600;color:var(--green)">' + (s.available || 0) + '</td>' +
+            '<td style="padding:8px;text-align:right">' + (parseFloat(mrp) || 0).toFixed(2) + '</td>' +
+            '<td style="padding:8px;text-align:right">' + (parseFloat(cost) || 0).toFixed(2) + '</td>' +
+            '<td style="padding:8px;text-align:center">-</td>' +
+            '<td style="padding:8px;text-align:center">' + (gst || 0) + '</td>' +
+            '<td style="padding:8px;text-align:center"><button class="btn btn-sm btn-blue" onclick="openStockEditModal(\'' + s.product_id + '\')">Edit</button></td>' +
             '</tr>';
         }).join('');
 
         document.getElementById('stock-body').innerHTML = html;
+        initStockSearch();
       } catch (e) {
         showError('Error loading stock: ' + e.message);
       }
     }
 
-    // Event listener for Edit buttons in stock table
-    document.addEventListener('click', function(e) {
-      if (e.target.classList.contains('stock-edit-btn')) {
-        var productId = e.target.getAttribute('data-product-id');
-        var productName = e.target.getAttribute('data-product-name');
-        editProductDetails(productId, productName);
+    async function openStockEditModal(productId) {
+      try {
+        var stocks = await apiCall('/api/stock');
+        var stock = stocks.find(s => s.product_id === productId);
+
+        if (!stock) {
+          showError('Stock item not found');
+          return;
+        }
+
+        var products = await getProductsWithCache();
+        var product = products.find(p => p.id === productId) || {};
+
+        // Populate form fields
+        document.getElementById('edit-product-id').value = productId;
+        document.getElementById('e-product-name').value = stock.product_name || '';
+        document.getElementById('e-scheme').value = stock.scheme || '';
+        document.getElementById('e-pack').value = stock.pack || '';
+        document.getElementById('e-hsn-code').value = stock.hsn_code || '';
+        document.getElementById('e-company').value = stock.company || '';
+        document.getElementById('e-batch-no').value = stock.batch_no || '';
+        document.getElementById('e-expiry-date').value = stock.expiry_date ? stock.expiry_date.substring(0, 7) : '';
+        document.getElementById('e-opening-stock').value = stock.openingStock || 0;
+        document.getElementById('e-purchased').value = stock.purchased || 0;
+        document.getElementById('e-sold').value = stock.sold || 0;
+        document.getElementById('e-available').value = stock.available || 0;
+        document.getElementById('e-mrp').value = (product.mrp || stock.mrp || 0);
+        document.getElementById('e-cost-price').value = (product.cost_price || stock.cost_price || 0);
+        document.getElementById('e-gst-rate').value = stock.gst_rate || 0;
+
+        document.getElementById('edit-modal').classList.add('show');
+      } catch (e) {
+        showError('Error loading stock item: ' + e.message);
       }
-    });
+    }
+
+    async function saveStockEdit() {
+      try {
+        var productId = document.getElementById('edit-product-id').value;
+        if (!productId) {
+          showError('Product ID not found');
+          return;
+        }
+
+        var productData = {
+          name: document.getElementById('e-product-name').value,
+          scheme: document.getElementById('e-scheme').value,
+          pack: document.getElementById('e-pack').value,
+          hsn_code: document.getElementById('e-hsn-code').value,
+          company: document.getElementById('e-company').value,
+          mrp: parseFloat(document.getElementById('e-mrp').value) || 0,
+          cost_price: parseFloat(document.getElementById('e-cost-price').value) || 0,
+          gst_rate: parseFloat(document.getElementById('e-gst-rate').value) || 0
+        };
+
+        var stockData = {
+          batch_no: document.getElementById('e-batch-no').value,
+          expiry_date: document.getElementById('e-expiry-date').value,
+          openingStock: parseInt(document.getElementById('e-opening-stock').value) || 0,
+          gst_rate: parseFloat(document.getElementById('e-gst-rate').value) || 0
+        };
+
+        // Update product (main update)
+        await apiCall('/api/products/' + productId, 'PUT', productData);
+
+        // Show success and close immediately (no waiting)
+        showSuccess('Stock item updated!');
+        closeEditModal();
+
+        // Refresh stock in background (async, don't wait)
+        setTimeout(async function() {
+          try {
+            var stocks = await apiCall('/api/stock');
+            var stock = stocks.find(s => s.product_id === productId);
+            if (stock && stock.id) {
+              await apiCall('/api/stock/' + stock.id, 'PUT', stockData).catch(e => {
+                console.log('Stock update optional');
+              });
+            }
+            // Refresh table after background update completes
+            renderStock();
+          } catch (e) {
+            console.log('Background update error:', e);
+          }
+        }, 100);
+      } catch (e) {
+        showError('Error saving changes: ' + e.message);
+      }
+    }
+
+    function closeEditModal() {
+      document.getElementById('edit-modal').classList.remove('show');
+    }
 
     async function updateStockField(input) {
       try {
@@ -4576,6 +4708,110 @@
       }
     }
 
+    // ─── STOCK SEARCH WITH AUTOCOMPLETE ──────────────────────────────────────
+    var stockSearchCache = null;
+    var stockSearchTimer = null;
+
+    async function initStockSearch() {
+      var searchInput = document.getElementById('stock-search-input');
+      if (!searchInput) return;
+
+      searchInput.oninput = function() {
+        clearTimeout(stockSearchTimer);
+        var query = this.value.trim();
+
+        if (query.length < 1) {
+          document.getElementById('stock-search-dropdown').style.display = 'none';
+          return;
+        }
+
+        // Debounce search
+        stockSearchTimer = setTimeout(async function() {
+          await showStockSuggestions(query);
+        }, 300);
+      };
+
+      searchInput.onfocus = function() {
+        if (this.value.trim().length > 0) {
+          showStockSuggestions(this.value.trim());
+        }
+      };
+
+      searchInput.onblur = function() {
+        setTimeout(function() {
+          document.getElementById('stock-search-dropdown').style.display = 'none';
+        }, 200);
+      };
+    }
+
+    async function showStockSuggestions(query) {
+      try {
+        var dropdown = document.getElementById('stock-search-dropdown');
+
+        // Fetch stock data if not cached
+        if (!stockSearchCache) {
+          stockSearchCache = await apiCall('/api/stock');
+        }
+
+        if (!stockSearchCache || !Array.isArray(stockSearchCache)) {
+          dropdown.style.display = 'none';
+          return;
+        }
+
+        // Filter stocks by name (case-insensitive)
+        var queryLower = query.toLowerCase();
+        var matches = stockSearchCache
+          .filter(function(s) {
+            return s.product_name && s.product_name.toLowerCase().includes(queryLower);
+          })
+          .sort(function(a, b) {
+            return (a.product_name || '').localeCompare(b.product_name || '');
+          })
+          .slice(0, 15);
+
+        if (matches.length === 0) {
+          dropdown.style.display = 'none';
+          return;
+        }
+
+        // Build dropdown HTML with complete stock information
+        dropdown.innerHTML = matches.map(function(stock) {
+          var expiryDate = stock.expiry_date ? stock.expiry_date.substring(0, 7) : '—';
+          var closingQty = stock.available || 0;
+          return '<div class="ac-item" onclick="selectStockSearch(\'' + (stock.product_name || '').replace(/'/g, "\\'") + '\')" style="padding:12px;cursor:pointer;border-bottom:1px solid var(--border);background:var(--bg);color:var(--text)" onmouseover="this.style.background=\'var(--bg2)\'" onmouseout="this.style.background=\'var(--bg)\'"><div style="font-weight:600;margin-bottom:4px">' + (stock.product_name || '') + '</div><div style="font-size:12px;color:var(--text2);line-height:1.4"><span style="display:inline-block;min-width:200px">Batch: ' + (stock.batch_no || '—') + ' | Exp: ' + expiryDate + '</span><br/><span style="display:inline-block;min-width:200px">Company: ' + (stock.company || '—') + ' | Pack: ' + (stock.pack || '—') + '</span><br/><span style="background:#f0f0f0;padding:2px 4px;border-radius:2px">Qty: ' + closingQty + ' | MRP: ₹' + (parseFloat(stock.mrp) || 0).toFixed(2) + ' | Buy: ₹' + (parseFloat(stock.cost_price) || 0).toFixed(2) + '</span></div></div>';
+        }).join('');
+
+        dropdown.style.display = 'block';
+      } catch (e) {
+        console.error('Error fetching stock suggestions:', e);
+        document.getElementById('stock-search-dropdown').style.display = 'none';
+      }
+    }
+
+    function selectStockSearch(productName) {
+      document.getElementById('stock-search-input').value = productName;
+      document.getElementById('stock-search-dropdown').style.display = 'none';
+
+      // Scroll to the matching stock in the table
+      var rows = document.querySelectorAll('#stock-body tr');
+      rows.forEach(function(row) {
+        var nameCell = row.querySelector('td:nth-child(2)');
+        if (nameCell && nameCell.textContent.trim() === productName) {
+          row.style.background = '#ffffcc';
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(function() {
+            row.style.background = '';
+          }, 3000);
+        }
+      });
+    }
+
+    function clearStockSearch() {
+      document.getElementById('stock-search-input').value = '';
+      document.getElementById('stock-search-dropdown').style.display = 'none';
+      renderStock();
+    }
+
     function showModal(html) {
       var overlay = document.createElement('div');
       overlay.id = 'modal-overlay';
@@ -4651,32 +4887,6 @@
       }).join('');
     }
 
-    function openEdit(i) {
-      var s = DB.stock[i];
-      document.getElementById('edit-idx').value = i;
-      document.getElementById('e-name').value = s.name;
-      document.getElementById('e-pack').value = s.pack || '';
-      document.getElementById('e-batch').value = s.batch || '';
-      document.getElementById('e-exp').value = s.exp || '';
-      document.getElementById('e-qty').value = s.qty;
-      document.getElementById('e-mrp').value = s.mrp || 0;
-      document.getElementById('e-min').value = s.minStock || 20;
-      document.getElementById('edit-modal').classList.add('show');
-    }
-    function saveEdit() {
-      var i = parseInt(document.getElementById('edit-idx').value);
-      Object.assign(DB.stock[i], {
-        name: document.getElementById('e-name').value,
-        pack: document.getElementById('e-pack').value,
-        batch: document.getElementById('e-batch').value,
-        exp: document.getElementById('e-exp').value,
-        qty: parseInt(document.getElementById('e-qty').value || 0),
-        mrp: parseFloat(document.getElementById('e-mrp').value || 0),
-        minStock: parseInt(document.getElementById('e-min').value || 20)
-      });
-      save(); renderStock(); closeModal();
-    }
-    function closeModal() { document.getElementById('edit-modal').classList.remove('show'); }
 
     // ─── ADJUST STOCK LOGIC ───────────────────────────────────────────────────────
     function openAdjust(i) {
@@ -5165,54 +5375,61 @@
     var salProdCache = null;
     var salProdDebounceTimer = null;
 
+    var salProdDebounceTimer = null;
+    var salStockCache = null;
+
+    function debounceSalProductSearch(inp, drop, tr) {
+      clearTimeout(salProdDebounceTimer);
+      salProdDebounceTimer = setTimeout(function() {
+        buildSalProdDrop(inp, drop, tr);
+      }, 300);  // Wait 300ms after user stops typing
+    }
+
     async function buildSalProdDrop(inp, drop, tr) {
       if (inp.classList.contains('ac-filled')) { drop.classList.remove('show'); return; }
       var q = inp.value.trim().toLowerCase();
       if (!q || q.length < 1) { drop.classList.remove('show'); return; }
 
-      // Debounce: wait 200ms after user stops typing before showing dropdown (faster for better UX)
-      clearTimeout(salProdDebounceTimer);
-      salProdDebounceTimer = setTimeout(async function() {
-        try {
-          // Load stock data only once, then cache it
-          if (!salProdCache) {
-            salProdCache = await apiCall('/api/stock');
+      try {
+        // Load stock data only once, then cache it
+        if (!salStockCache) {
+          salStockCache = await apiCall('/api/stock');
+        }
+
+        if (!salStockCache || !Array.isArray(salStockCache)) {
+          console.log('Stock data error:', salStockCache);
+          drop.classList.remove('show');
+          return;
+        }
+
+        // Smart matching: prioritize products that START with query, then ones that contain it
+        var prefixMatches = [];
+        var containMatches = [];
+
+        salStockCache.forEach(function (s) {
+          if (!s.product_name) return;
+          var name = s.product_name.toLowerCase();
+          if (name.startsWith(q)) {
+            prefixMatches.push(s);
+          } else if (name.includes(q)) {
+            containMatches.push(s);
           }
+        });
 
-          if (!salProdCache || !Array.isArray(salProdCache)) {
-            console.log('Stock data error:', salProdCache);
-            drop.classList.remove('show');
-            return;
-          }
+        var matches = prefixMatches.concat(containMatches)
+          .sort(function (a, b) { return (a.product_name || '').localeCompare(b.product_name || ''); })
+          .slice(0, 15);
 
-          // Smart matching: prioritize products that START with query, then ones that contain it
-          var prefixMatches = [];
-          var containMatches = [];
-
-          salProdCache.forEach(function (s) {
-            if (!s.product_name) return;
-            var name = s.product_name.toLowerCase();
-            if (name.startsWith(q)) {
-              prefixMatches.push(s);
-            } else if (name.includes(q)) {
-              containMatches.push(s);
-            }
-          });
-
-          var matches = prefixMatches.concat(containMatches)
-            .sort(function (a, b) { return (a.product_name || '').localeCompare(b.product_name || ''); })
-            .slice(0, 15);
-
-          if (!matches.length) {
-            console.log('No matches found for:', q);
-            drop.classList.remove('show');
-            return;
-          }
-          positionSalDrop(inp, drop);
-          drop.innerHTML = '';
-          matches.forEach(function (s) {
-            var item = document.createElement('div'); item.className = 'ac-item';
-            item.innerHTML = '<div class="ac-name">' + (s.product_name || '') + '</div>';
+        if (!matches.length) {
+          console.log('No matches found for:', q);
+          drop.classList.remove('show');
+          return;
+        }
+        positionSalDrop(inp, drop);
+        drop.innerHTML = '';
+        matches.forEach(function (s) {
+          var item = document.createElement('div'); item.className = 'ac-item';
+          item.innerHTML = '<div class="ac-name">' + (s.product_name || '') + '</div>';
           item.onmousedown = function (e) { e.preventDefault(); fillSalRow(tr, inp, drop, s); };
           drop.appendChild(item);
         });
@@ -5222,7 +5439,6 @@
         console.log('Autocomplete error:', e);
         drop.classList.remove('show');
       }
-      }, 300); // setTimeout delay
     }
     function positionSalDrop(inp, drop) {
       var rect = inp.getBoundingClientRect();
@@ -5339,11 +5555,11 @@
           acInp.style.background = '';
           drop.innerHTML = '';
         }
-        buildSalProdDrop(acInp, drop, tr);
+        debounceSalProductSearch(acInp, drop, tr);
       };
       acInp.onfocus = function () {
         if (!acInp.classList.contains('ac-filled') && acInp.value.trim())
-          buildSalProdDrop(acInp, drop, tr);
+          debounceSalProductSearch(acInp, drop, tr);
       };
       acInp.onblur = function () { setTimeout(function () { drop.classList.remove('show'); }, 180); };
 
@@ -5634,135 +5850,348 @@
     }
 
     // ─── RETAILER / PATIENT / VENDOR AUTOCOMPLETE ────────────────────────────────
-    function buildRetDrop(inp, field) {
-      var q = inp.value.trim().toLowerCase();
+    var retDropTimer = null;
+    async function buildRetDrop(inp, field) {
+      clearTimeout(retDropTimer);
+      var q = inp.value.trim();
       var dropId = field === 'name' ? 'r-name-drop' : 'r-ph-drop';
       var drop = document.getElementById(dropId);
       if (!q) { drop.classList.remove('show'); return; }
       positionFixedDrop(inp, drop);
-      var seen = {};
-      var matches = DB.salesInvoices.filter(function (inv) {
-        if (inv.type !== 'retailer' || !inv.buyerRaw) return false;
-        var val = field === 'name' ? (inv.buyerRaw.name || '').toLowerCase() : (inv.buyerRaw.ph || '').toLowerCase();
-        if (val.indexOf(q) === -1) return false;
-        var key = (inv.buyerRaw.name || '') + (inv.buyerRaw.ph || '');
-        if (seen[key]) return false; seen[key] = true; return true;
-      }).slice(0, 6);
-      if (!matches.length) { drop.classList.remove('show'); return; }
-      drop.innerHTML = '';
-      matches.forEach(function (inv) {
-        var r = inv.buyerRaw; var item = document.createElement('div'); item.className = 'ac-item';
-        item.innerHTML = '<div class="ac-name">' + (r.name || '—') + '</div>' + '<div class="ac-sub"><span>' + (r.ph || '') + '</span><span>' + (r.town || '') + '</span><span>GST: ' + (r.gst || '—') + '</span></div>';
-        item.onclick = function () {
-          document.getElementById('r-name').value = r.name || ''; document.getElementById('r-ph').value = r.ph || '';
-          document.getElementById('r-door').value = r.door || '';
-          document.getElementById('r-addr').value = r.addr || '';
-          document.getElementById('r-city').value = r.city || '';
-          document.getElementById('r-pin').value = r.pin || '';
-          document.getElementById('r-dl1').value = r.dl1 || ''; document.getElementById('r-dl2').value = r.dl2 || '';
-          document.getElementById('r-gst').value = r.gst || '';
-          drop.classList.remove('show'); toast('Customer details auto-filled.', 'blue');
-        };
-        drop.appendChild(item);
-      });
-      drop.classList.add('show');
+
+      if (field === 'name') {
+        // Use API for name suggestions with debouncing
+        retDropTimer = setTimeout(async function() {
+          try {
+            var suggestions = await apiCall('/api/customer-names?customer_type=retailer&q=' + encodeURIComponent(q));
+          if (!suggestions || !suggestions.length) { drop.classList.remove('show'); return; }
+
+          drop.innerHTML = '';
+          suggestions.forEach(function (name) {
+            // Find ALL invoices for this retailer (case-insensitive and flexible matching)
+            var nameLower = name.toLowerCase();
+            var allInvoices = DB.salesInvoices.filter(function (inv) {
+              return inv.type === 'retailer' && inv.buyerRaw &&
+                     (inv.buyerRaw.name === name ||
+                      (inv.buyerRaw.name && inv.buyerRaw.name.toLowerCase().indexOf(nameLower) !== -1));
+            });
+
+            // Merge all fields from all invoices (most recent non-empty value takes precedence)
+            var r = { name: name };
+            allInvoices.reverse().forEach(function (inv) {
+              var buyer = inv.buyerRaw || {};
+              Object.keys(buyer).forEach(function (key) {
+                if (buyer[key] && !r[key]) {
+                  r[key] = buyer[key];
+                }
+              });
+            });
+
+            var item = document.createElement('div');
+            item.className = 'ac-item';
+            item.innerHTML = '<div class="ac-name">' + (r.name || '—') + '</div>' + '<div class="ac-sub"><span>' + (r.ph || '') + '</span><span>' + (r.town || '') + '</span><span>GST: ' + (r.gst || '—') + '</span></div>';
+            item.onclick = async function () {
+              try {
+                // Fetch complete customer details from API
+                var details = await apiCall('/api/customer-details?customer_type=retailer&customer_name=' + encodeURIComponent(name));
+
+                // Fill all available fields (using correct database field names)
+                document.getElementById('r-name').value = details.customer_name || name || '';
+                document.getElementById('r-ph').value = details.customer_phone || '';
+                document.getElementById('r-door').value = details.customer_door_number || '';
+                document.getElementById('r-addr').value = details.customer_address || '';
+                document.getElementById('r-city').value = details.customer_city || '';
+                document.getElementById('r-pin').value = details.customer_pincode || '';
+                document.getElementById('r-dl1').value = details.customer_dl1 || '';
+                document.getElementById('r-dl2').value = details.customer_dl2 || '';
+                document.getElementById('r-gst').value = details.customer_gst || '';
+                document.getElementById('r-state').value = details.customer_state || '';
+
+                drop.classList.remove('show');
+                toast('Customer details auto-filled from past invoices.', 'blue');
+              } catch (e) {
+                console.error('Error fetching retailer details:', e);
+                toast('Could not fetch retailer details', 'red');
+              }
+            };
+            drop.appendChild(item);
+          });
+          drop.classList.add('show');
+        } catch (e) {
+          console.error('Error fetching retailer suggestions:', e);
+          drop.classList.remove('show');
+        }
+        }, 300);
+      } else {
+        // For phone search, merge all data from invoices for each unique retailer
+        var qLower = q.toLowerCase();
+        var retailerMap = {};
+        DB.salesInvoices.filter(function (inv) {
+          if (inv.type !== 'retailer' || !inv.buyerRaw) return false;
+          var val = (inv.buyerRaw.ph || '').toLowerCase();
+          return val.indexOf(qLower) !== -1;
+        }).forEach(function (inv) {
+          var buyer = inv.buyerRaw;
+          var key = (buyer.name || '') + (buyer.ph || '');
+          if (!retailerMap[key]) {
+            retailerMap[key] = { name: buyer.name, ph: buyer.ph };
+          }
+          Object.keys(buyer).forEach(function (field) {
+            if (buyer[field] && !retailerMap[key][field]) {
+              retailerMap[key][field] = buyer[field];
+            }
+          });
+        });
+
+        var matches = Object.keys(retailerMap).slice(0, 6);
+        if (!matches.length) { drop.classList.remove('show'); return; }
+        drop.innerHTML = '';
+        matches.forEach(function (key) {
+          var r = retailerMap[key];
+          var retailerName = r.name;
+          var item = document.createElement('div'); item.className = 'ac-item';
+          item.innerHTML = '<div class="ac-name">' + (r.name || '—') + '</div>' + '<div class="ac-sub"><span>' + (r.ph || '') + '</span><span>' + (r.town || '') + '</span><span>GST: ' + (r.gst || '—') + '</span></div>';
+          item.onclick = async function () {
+            try {
+              var details = await apiCall('/api/customer-details?customer_type=retailer&customer_name=' + encodeURIComponent(retailerName));
+              document.getElementById('r-name').value = details.customer_name || retailerName || '';
+              document.getElementById('r-ph').value = details.customer_phone || '';
+              document.getElementById('r-door').value = details.customer_door_number || '';
+              document.getElementById('r-addr').value = details.customer_address || '';
+              document.getElementById('r-city').value = details.customer_city || '';
+              document.getElementById('r-pin').value = details.customer_pincode || '';
+              document.getElementById('r-dl1').value = details.customer_dl1 || '';
+              document.getElementById('r-dl2').value = details.customer_dl2 || '';
+              document.getElementById('r-gst').value = details.customer_gst || '';
+              document.getElementById('r-state').value = details.customer_state || '';
+              drop.classList.remove('show'); toast('Customer details auto-filled from past records.', 'blue');
+            } catch (e) {
+              console.error('Error fetching retailer details:', e);
+              toast('Could not fetch retailer details', 'red');
+            }
+          };
+          drop.appendChild(item);
+        });
+        drop.classList.add('show');
+      }
     }
-    function buildPatDrop(inp, field) {
-      var q = inp.value.trim().toLowerCase();
+    var patDropTimer = null;
+    async function buildPatDrop(inp, field) {
+      clearTimeout(patDropTimer);
+      var q = inp.value.trim();
       var dropId = field === 'name' ? 'p-name-drop' : 'p-ph-drop';
       var drop = document.getElementById(dropId);
       if (!q) { drop.classList.remove('show'); return; }
       positionFixedDrop(inp, drop);
-      var seen = {};
-      var matches = DB.salesInvoices.filter(function (inv) {
-        if (inv.type !== 'patient' || !inv.buyerRaw) return false;
-        var val = field === 'name' ? (inv.buyerRaw.name || '').toLowerCase() : (inv.buyerRaw.ph || '').toLowerCase();
-        if (val.indexOf(q) === -1) return false;
-        var key = (inv.buyerRaw.name || '') + (inv.buyerRaw.ph || '');
-        if (seen[key]) return false; seen[key] = true; return true;
-      }).slice(0, 6);
-      if (!matches.length) { drop.classList.remove('show'); return; }
-      drop.innerHTML = '';
-      matches.forEach(function (inv) {
-        var r = inv.buyerRaw; var item = document.createElement('div'); item.className = 'ac-item';
-        item.innerHTML = '<div class="ac-name">' + (r.name || '—') + '</div>' + '<div class="ac-sub"><span>' + (r.ph || '') + '</span><span>Dr. ' + (r.doc || '—') + '</span></div>';
-        item.onclick = function () {
-          document.getElementById('p-name').value = r.name || ''; document.getElementById('p-age').value = r.age || '';
-          document.getElementById('p-gender').value = r.gender || ''; document.getElementById('p-ph').value = r.ph || '';
-          document.getElementById('p-doc').value = r.doc || ''; document.getElementById('p-hosp').value = r.hosp || '';
-          document.getElementById('p-doc-ph').value = r.docPh || '';
-          document.getElementById('p-door').value = r.door || '';
-          document.getElementById('p-addr').value = r.addr || '';
-          document.getElementById('p-city').value = r.city || '';
-          document.getElementById('p-pin').value = r.pin || '';
-          var rxEl = document.getElementById('p-rx'); if (rxEl) rxEl.value = r.rx || '';
-          var diagEl = document.getElementById('p-diag'); if (diagEl) diagEl.value = r.diag || '';
-          var memCb = document.getElementById('p-membership');
-          if (memCb) {
-            memCb.checked = r.member || false;
-            var memIdInp = document.getElementById('p-member-id');
-            if (memIdInp) memIdInp.value = r.memberId || '';
-            toggleMembership();
-          }
-          drop.classList.remove('show'); toast('Patient details auto-filled.', 'blue');
-        };
-        drop.appendChild(item);
-      });
+
+      if (field === 'name') {
+        // Use API for name suggestions with debouncing
+        patDropTimer = setTimeout(async function() {
+          try {
+            var suggestions = await apiCall('/api/customer-names?customer_type=patient&q=' + encodeURIComponent(q));
+          if (!suggestions || !suggestions.length) { drop.classList.remove('show'); return; }
+
+          drop.innerHTML = '';
+          suggestions.forEach(function (name) {
+            // Find ALL invoices for this patient (case-insensitive and flexible matching)
+            var nameLower = name.toLowerCase();
+            var allInvoices = DB.salesInvoices.filter(function (inv) {
+              return inv.type === 'patient' && inv.buyerRaw &&
+                     (inv.buyerRaw.name === name ||
+                      (inv.buyerRaw.name && inv.buyerRaw.name.toLowerCase().indexOf(nameLower) !== -1));
+            });
+
+            // Merge all fields from all invoices (most recent non-empty value takes precedence)
+            var r = { name: name };
+            allInvoices.reverse().forEach(function (inv) {
+              var buyer = inv.buyerRaw || {};
+              Object.keys(buyer).forEach(function (key) {
+                if (buyer[key] && !r[key]) {
+                  r[key] = buyer[key];
+                }
+              });
+            });
+
+            var item = document.createElement('div');
+            item.className = 'ac-item';
+            item.innerHTML = '<div class="ac-name">' + (r.name || '—') + '</div>' + '<div class="ac-sub"><span>' + (r.ph || '') + '</span><span>Dr. ' + (r.doc || '—') + '</span></div>';
+            item.onclick = async function () {
+              try {
+                // Fetch complete customer details from API
+                var details = await apiCall('/api/customer-details?customer_type=patient&customer_name=' + encodeURIComponent(name));
+
+                // Fill all available fields (using correct database field names)
+                document.getElementById('p-name').value = details.customer_name || name || '';
+                document.getElementById('p-age').value = details.customer_age || '';
+                document.getElementById('p-gender').value = details.customer_gender || '';
+                document.getElementById('p-ph').value = details.customer_phone || '';
+                document.getElementById('p-doc').value = details.customer_doctor_name || '';
+                document.getElementById('p-hosp').value = details.customer_hospital_name || '';
+                document.getElementById('p-doc-ph').value = details.customer_doctor_phone || '';
+                document.getElementById('p-door').value = details.customer_door_number || '';
+                document.getElementById('p-addr').value = details.customer_address || '';
+                document.getElementById('p-city').value = details.customer_city || '';
+                document.getElementById('p-pin').value = details.customer_pincode || '';
+                document.getElementById('p-state').value = details.customer_state || '';
+
+                var rxEl = document.getElementById('p-rx'); if (rxEl) rxEl.value = details.prescription || '';
+                var diagEl = document.getElementById('p-diag'); if (diagEl) diagEl.value = details.diagnosis || '';
+
+                var memCb = document.getElementById('p-membership');
+                if (memCb) {
+                  memCb.checked = details.member || false;
+                  var memIdInp = document.getElementById('p-member-id');
+                  if (memIdInp) memIdInp.value = details.member_id || '';
+                  toggleMembership();
+                }
+
+                drop.classList.remove('show');
+                toast('Patient details auto-filled from past invoices.', 'blue');
+              } catch (e) {
+                console.error('Error fetching patient details:', e);
+                toast('Could not fetch patient details', 'red');
+              }
+            };
+            drop.appendChild(item);
+          });
       drop.classList.add('show');
+        } catch (e) {
+          console.error('Error fetching patient suggestions:', e);
+          drop.classList.remove('show');
+        }
+        }, 300);
+      } else {
+        // For phone search, merge all data from invoices for each unique patient
+        var qLower = q.toLowerCase();
+        var patientMap = {};
+        DB.salesInvoices.filter(function (inv) {
+          if (inv.type !== 'patient' || !inv.buyerRaw) return false;
+          var val = (inv.buyerRaw.ph || '').toLowerCase();
+          return val.indexOf(qLower) !== -1;
+        }).forEach(function (inv) {
+          var buyer = inv.buyerRaw;
+          var key = (buyer.name || '') + (buyer.ph || '');
+          if (!patientMap[key]) {
+            patientMap[key] = { name: buyer.name, ph: buyer.ph };
+          }
+          Object.keys(buyer).forEach(function (field) {
+            if (buyer[field] && !patientMap[key][field]) {
+              patientMap[key][field] = buyer[field];
+            }
+          });
+        });
+
+        var matches = Object.keys(patientMap).slice(0, 6);
+        if (!matches.length) { drop.classList.remove('show'); return; }
+        drop.innerHTML = '';
+        matches.forEach(function (key) {
+          var r = patientMap[key];
+          var patientName = r.name;
+          var item = document.createElement('div'); item.className = 'ac-item';
+          item.innerHTML = '<div class="ac-name">' + (r.name || '—') + '</div>' + '<div class="ac-sub"><span>' + (r.ph || '') + '</span><span>Dr. ' + (r.doc || '—') + '</span></div>';
+          item.onclick = async function () {
+            try {
+              var details = await apiCall('/api/customer-details?customer_type=patient&customer_name=' + encodeURIComponent(patientName));
+              document.getElementById('p-name').value = details.customer_name || patientName || '';
+              document.getElementById('p-age').value = details.customer_age || '';
+              document.getElementById('p-gender').value = details.customer_gender || '';
+              document.getElementById('p-ph').value = details.customer_phone || '';
+              document.getElementById('p-doc').value = details.customer_doctor_name || '';
+              document.getElementById('p-hosp').value = details.customer_hospital_name || '';
+              document.getElementById('p-doc-ph').value = details.customer_doctor_phone || '';
+              document.getElementById('p-door').value = details.customer_door_number || '';
+              document.getElementById('p-addr').value = details.customer_address || '';
+              document.getElementById('p-city').value = details.customer_city || '';
+              document.getElementById('p-pin').value = details.customer_pincode || '';
+              document.getElementById('p-state').value = details.customer_state || '';
+              var rxEl = document.getElementById('p-rx'); if (rxEl) rxEl.value = details.prescription || '';
+              var diagEl = document.getElementById('p-diag'); if (diagEl) diagEl.value = details.diagnosis || '';
+              var memCb = document.getElementById('p-membership');
+              if (memCb) {
+                memCb.checked = details.member || false;
+                var memIdInp = document.getElementById('p-member-id');
+                if (memIdInp) memIdInp.value = details.member_id || '';
+                toggleMembership();
+              }
+              drop.classList.remove('show'); toast('Patient details auto-filled from past records.', 'blue');
+            } catch (e) {
+              console.error('Error fetching patient details:', e);
+              toast('Could not fetch patient details', 'red');
+            }
+          };
+          drop.appendChild(item);
+        });
+        drop.classList.add('show');
+      }
     }
+    var vendorDropTimer = null;
+    var vendorListCache = null;
+
     async function buildVendorDrop(inp) {
+      // Clear previous timer
+      clearTimeout(vendorDropTimer);
+
       var q = inp.value.trim().toLowerCase();
       var drop = document.getElementById('pu-vname-drop');
       if (!q) { drop.classList.remove('show'); return; }
 
-      try {
-        // Fetch vendors from API
-        var vendors = await apiCall('/api/vendors', 'GET');
-        if (!vendors || !Array.isArray(vendors)) { drop.classList.remove('show'); return; }
+      // Debounce: wait 300ms before searching
+      vendorDropTimer = setTimeout(async function() {
+        try {
+          // Use cache if available, otherwise fetch from API
+          if (!vendorListCache) {
+            vendorListCache = await apiCall('/api/vendors', 'GET');
+          }
 
-        // Filter and sort
-        var matches = vendors
-          .filter(function (v) { return (v.name || '').toLowerCase().startsWith(q); })
-          .sort(function (a, b) { return (a.name || '').localeCompare(b.name || ''); })
-          .slice(0, 6);
-
-        if (!matches.length) { drop.classList.remove('show'); return; }
-
-        positionFixedDrop(inp, drop);
-        drop.innerHTML = '';
-
-        matches.forEach(function (v) {
-          var item = document.createElement('div');
-          item.className = 'ac-item';
-          item.innerHTML = '<div class="ac-name">' + (v.name || '') + '</div>'
-            + '<div class="ac-sub"><span>' + (v.phone || '—') + '</span><span>' + (v.contact_person || '—') + '</span><span>GST: ' + (v.gstin || '—') + '</span></div>';
-
-          item.onclick = function () {
-            // Auto-fill all vendor details from API data
-            document.getElementById('pu-vname').value = v.name || '';
-            document.getElementById('pu-vcontact').value = v.contact_person || '';
-            document.getElementById('pu-vgst').value = v.gstin || '';
-            document.getElementById('pu-vdl1').value = v.dl1 || '';
-            document.getElementById('pu-vdl3').value = v.dl2 || '';
-            document.getElementById('pu-vph').value = v.phone || '';
-            document.getElementById('pu-vaddr').value = v.address || '';
-            document.getElementById('pu-vcity').value = v.city || '';
-            document.getElementById('pu-vpin').value = v.pincode || '';
-            document.getElementById('pu-vbank-name').value = v.bank_name || '';
-            document.getElementById('pu-vbank-acc').value = v.bank_acc || '';
-            document.getElementById('pu-vbank-ifsc').value = v.bank_ifsc || '';
-
+          if (!vendorListCache || !Array.isArray(vendorListCache)) {
             drop.classList.remove('show');
-            toast('✅ Vendor details auto-filled from database.', 'green');
-          };
-          drop.appendChild(item);
-        });
+            return;
+          }
 
-        drop.classList.add('show');
-      } catch (e) {
-        console.error('Error fetching vendors:', e);
-        drop.classList.remove('show');
-      }
+          // Filter and sort
+          var matches = vendorListCache
+            .filter(function (v) { return (v.name || '').toLowerCase().startsWith(q); })
+            .sort(function (a, b) { return (a.name || '').localeCompare(b.name || ''); })
+            .slice(0, 6);
+
+          if (!matches.length) { drop.classList.remove('show'); return; }
+
+          positionFixedDrop(inp, drop);
+          drop.innerHTML = '';
+
+          matches.forEach(function (v) {
+            var item = document.createElement('div');
+            item.className = 'ac-item';
+            item.innerHTML = '<div class="ac-name">' + (v.name || '') + '</div>'
+              + '<div class="ac-sub"><span>' + (v.phone || '—') + '</span><span>' + (v.contact_person || '—') + '</span><span>GST: ' + (v.gstin || '—') + '</span></div>';
+
+            item.onclick = function () {
+              // Auto-fill all vendor details from API data
+              document.getElementById('pu-vname').value = v.name || '';
+              document.getElementById('pu-vcontact').value = v.contact_person || '';
+              document.getElementById('pu-vgst').value = v.gstin || '';
+              document.getElementById('pu-vdl1').value = v.dl1 || '';
+              document.getElementById('pu-vdl3').value = v.dl2 || '';
+              document.getElementById('pu-vph').value = v.phone || '';
+              document.getElementById('pu-vaddr').value = v.address || '';
+              document.getElementById('pu-vcity').value = v.city || '';
+              document.getElementById('pu-vpin').value = v.pincode || '';
+              document.getElementById('pu-vbank-name').value = v.bank_name || '';
+              document.getElementById('pu-vbank-acc').value = v.bank_acc || '';
+              document.getElementById('pu-vbank-ifsc').value = v.bank_ifsc || '';
+
+              drop.classList.remove('show');
+              toast('✅ Vendor details auto-filled from database.', 'green');
+            };
+            drop.appendChild(item);
+          });
+
+          drop.classList.add('show');
+        } catch (e) {
+          console.error('Error fetching vendors:', e);
+          drop.classList.remove('show');
+        }
+      }, 300);
     }
 
     // ─── COLLECT SALES DATA ───────────────────────────────────────────────────────
@@ -6003,6 +6432,7 @@
                   gst_rate: item.gst || 5
                 });
                 productId = newProduct.id;
+                productsListCache = null;  // Clear cache since new product added
                 console.log('✅ Product created with ID:', productId);
               } catch (e) {
                 console.error('❌ Failed to create product:', e.message);
@@ -6257,6 +6687,7 @@
                   gst_rate: item.gst || 5
                 });
                 productId = newProduct.id;
+                productsListCache = null;  // Clear cache since new product added
                 console.log('✅ Product created with ID:', productId);
               } catch (e) {
                 console.error('❌ Failed to create product:', e.message);
@@ -6729,10 +7160,7 @@
             + '<td style="padding:8px 6px;text-align:center;color:var(--text2)">' + date + '</td>'
             + '<td style="padding:8px 6px;text-align:center"><span class="bdg bdg-g">Final</span></td>'
             + '<td style="padding:8px 6px;text-align:right;white-space:nowrap;font-size:11px">'
-            + '<button class="btn btn-p btn-sm pf-view-btn" data-invid="' + id + '" style="margin-right:2px;padding:4px 8px" title="View Invoice">View</button>'
-            + '<button class="btn btn-b btn-sm pf-download-btn" data-pfid="' + id + '" data-pftype="final" style="padding:4px 8px" title="Download PDF">'
-            + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
-            + '</button>'
+            + '<button class="btn btn-p btn-sm pf-view-btn" data-invid="' + id + '" style="padding:4px 8px" title="View Invoice">View</button>'
             + '</td>'
             + '</tr>';
         }).join('');
@@ -6928,10 +7356,34 @@
 
         var html = buildInvHtml(invData, settings, false);
 
+        // Create full HTML document with proper structure and print styles
+        var fullHtml = '<!DOCTYPE html>'
+          + '<html>'
+          + '<head>'
+          + '<meta charset="UTF-8">'
+          + '<title>Invoice ' + invData.invNo + '</title>'
+          + '<style>'
+          + '* { margin: 0; padding: 0; box-sizing: border-box; }'
+          + 'html, body { margin: 0; padding: 0; background: #fff; width: 100%; }'
+          + '.inv { width: 100%; height: auto; margin: 0; padding: 0; background: #fff; }'
+          + '@page { size: A4; margin: 0mm; padding: 0; }'
+          + '@media print {'
+          + '  * { margin: 0; padding: 0; }'
+          + '  html { margin: 0; padding: 0; }'
+          + '  body { margin: 0; padding: 0; width: 100%; height: 100%; }'
+          + '  .inv { width: 100%; margin: 0; padding: 0; }'
+          + '}'
+          + '</style>'
+          + '</head>'
+          + '<body>'
+          + html
+          + '</body>'
+          + '</html>';
+
         var w = window.open('', '', 'width=900,height=700');
-        w.document.write(html);
+        w.document.write(fullHtml);
         w.document.close();
-        toast('✅ Final invoice opened. Use Ctrl+P or Print button to save as PDF.', 'green');
+        toast('✅ Final invoice opened. Press Ctrl+P to save as PDF.', 'green');
       } catch (e) {
         console.error('Invoice view error:', e);
         toast('Error: ' + e, 'red');
@@ -8062,8 +8514,8 @@
       if (window.salType) {
         updateGSTMode();
       }
-      // Load initial data
-      await loadDB();
+      // Load only dashboard on initial page load
+      // Other page data will load when user navigates to them
       renderDash();
     });
 
@@ -8076,52 +8528,106 @@
       document.getElementById('pt-filter-' + mode).style.display = 'block';
     }
 
+    // ─── PATIENT TRACKER AUTOCOMPLETE ────────────────────────────────────────────────
+    var ptSuggestionsCache = {};
+    var ptSuggestionsTimer = null;
+    async function showPTNameSuggestions() {
+      clearTimeout(ptSuggestionsTimer);
+      var nameInput = document.getElementById('pt-search-name');
+      var typeSelect = document.getElementById('pt-search-type');
+      var query = nameInput.value.trim();
+      var custType = typeSelect ? typeSelect.value : 'patient';
+      var suggestionsDiv = document.getElementById('pt-suggestions');
+
+      if (!suggestionsDiv) {
+        console.error('Suggestions div not found');
+        return;
+      }
+
+      if (query.length < 1) {
+        suggestionsDiv.style.display = 'none';
+        return;
+      }
+
+      // Debounce API calls - wait 300ms before fetching
+      ptSuggestionsTimer = setTimeout(async function() {
+        try {
+          var cacheKey = custType + ':' + query;
+          var suggestions;
+
+          // Check cache first
+          if (ptSuggestionsCache[cacheKey]) {
+            suggestions = ptSuggestionsCache[cacheKey];
+          } else {
+            // Fetch suggestions from API
+            var url = '/api/customer-names?customer_type=' + custType + '&q=' + encodeURIComponent(query);
+            suggestions = await apiCall(url);
+            ptSuggestionsCache[cacheKey] = suggestions;
+          }
+
+          if (suggestions && suggestions.length > 0) {
+            suggestionsDiv.innerHTML = suggestions.map(function(name) {
+              return '<div class="ac-item" onclick="selectPTNameSuggestion(\'' + name.replace(/'/g, "\\'") + '\')" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);background:var(--bg);color:var(--text)" onmouseover="this.style.background=\'var(--bg2)\'" onmouseout="this.style.background=\'var(--bg)\'"><span>' + name + '</span></div>';
+            }).join('');
+            suggestionsDiv.style.display = 'block';
+          } else {
+            suggestionsDiv.style.display = 'none';
+          }
+        } catch (e) {
+          console.error('Error fetching suggestions:', e);
+          suggestionsDiv.style.display = 'none';
+        }
+      }, 300);
+    }
+
+    function selectPTNameSuggestion(name) {
+      document.getElementById('pt-search-name').value = name;
+      document.getElementById('pt-suggestions').style.display = 'none';
+      searchPTByName();
+    }
+
     // ─── PAYMENT TRACKER ──────────────────────────────────────────────────────────
     function renderPTTracker() {
       // Any initial load logic if needed
     }
 
-    async function searchPTByDetails() {
-      var phoneQuery = document.getElementById('pt-search-phone').value.trim();
+    async function searchPTByName() {
+      var nameQuery = document.getElementById('pt-search-name').value.trim();
+      var custType = document.getElementById('pt-search-type').value;
 
-      if (!phoneQuery) { toast('Please enter the 10-digit mobile number.', 'amber'); return; }
-
-      // Strict 10-digit phone validation
-      var cleanPhone = phoneQuery.replace(/\D/g, '');
-      if (cleanPhone.length !== 10) {
-        toast('Please enter a valid 10-digit phone number.', 'amber'); return;
+      if (!nameQuery || nameQuery.length < 2) {
+        toast('Please enter at least 2 characters to search.', 'amber');
+        return;
       }
 
       try {
-        // Load finalized invoices from backend
-        var invoices = await apiCall('/api/invoices');
+        // Call patient tracker API with type and name filter
+        var patients = await apiCall('/api/patient-tracker?type=' + custType + '&name=' + encodeURIComponent(nameQuery));
 
-        var list = (invoices || []).map(function (inv) {
-          var data = inv.data || {};
-          return {
-            id: inv.id,
-            invNo: data.invNo,
-            type: data.type,
-            buyerName: data.buyerName,
-            buyerRaw: data.buyerRaw,
-            date: inv.finalized_date,
-            items: data.items,
-            net: data.net,
-            pay: data.pay,
-            totalQty: data.totalQty,
-            rawData: data
-          };
-        }).filter(function (inv) {
-          if (inv.type !== 'patient') return false;
-          var pPh = (inv.buyerRaw && inv.buyerRaw.ph || '').replace(/\D/g, '');
-          return pPh === cleanPhone;
-        }).sort(function (a, b) {
-          return new Date(b.date) - new Date(a.date);
+        if (!patients || !patients.length) {
+          toast('No patient records found for "' + nameQuery + '".', 'amber');
+          displayPTResults([]);
+          return;
+        }
+
+        // Flatten patients into invoice list for display
+        var list = [];
+        patients.forEach(function (patient) {
+          (patient.invoices || []).forEach(function (inv) {
+            list.push({
+              id: inv.id,
+              invoice_number: inv.invoice_number,
+              customer_name: patient.patient_name,
+              customer_phone: patient.customer_phone,
+              invoice_date: inv.invoice_date,
+              grand_total: inv.grand_total,
+              payment_status: inv.payment_status,
+              items: inv.items || [],
+              notes: inv.notes
+            });
+          });
         });
 
-        if (!list.length) {
-          toast('No patient records found for this mobile number.', 'amber');
-        }
         displayPTResults(list);
       } catch (e) {
         console.error('Error searching patient:', e);
@@ -8131,31 +8637,37 @@
 
     async function searchPTByMonth() {
       var month = document.getElementById('pt-search-month').value;
+      var custType = document.getElementById('pt-search-type').value;
       if (!month) { toast('Please select a month.', 'amber'); return; }
+      toast('Searching invoices...', 'blue');
       try {
-        // Load finalized invoices from backend
-        var invoices = await apiCall('/api/invoices');
+        // Use patient tracker API to get invoices by type
+        var patients = await apiCall('/api/patient-tracker?type=' + custType);
 
-        var list = (invoices || []).map(function (inv) {
-          var data = inv.data || {};
-          return {
-            id: inv.id,
-            invNo: data.invNo,
-            type: data.type,
-            buyerName: data.buyerName,
-            buyerRaw: data.buyerRaw,
-            date: inv.finalized_date,
-            items: data.items,
-            net: data.net,
-            pay: data.pay,
-            totalQty: data.totalQty,
-            rawData: data
-          };
-        }).filter(function (inv) {
-          return inv.type === 'patient' && inv.date.startsWith(month);
-        }).sort(function (a, b) {
-          return new Date(b.date) - new Date(a.date);
+        // Flatten and filter by month
+        var list = [];
+        (patients || []).forEach(function(patient) {
+          (patient.invoices || []).forEach(function(inv) {
+            if (inv.invoice_date && inv.invoice_date.startsWith(month)) {
+              list.push({
+                id: inv.id,
+                invoice_number: inv.invoice_number,
+                customer_name: patient.patient_name,
+                customer_phone: patient.customer_phone,
+                invoice_date: inv.invoice_date,
+                items: inv.items || [],
+                grand_total: inv.grand_total,
+                payment_status: inv.payment_status
+              });
+            }
+          });
         });
+
+        // Sort by date descending
+        list.sort(function(a, b) {
+          return new Date(b.invoice_date) - new Date(a.invoice_date);
+        });
+
         displayPTResults(list);
       } catch (e) {
         console.error('Error searching by month:', e);
@@ -8166,28 +8678,151 @@
     function displayPTResults(list) {
       var tb = document.getElementById('pt-results-body');
       if (!list.length) {
-        tb.innerHTML = '<tr><td colspan="10" class="empty">No matching patient found.</td></tr>';
+        tb.innerHTML = '<tr><td colspan="9" class="empty">No matching patient found.</td></tr>';
         return;
       }
       tb.innerHTML = list.map(function (inv) {
-        var meds = (inv.items || []).map(function (it) { return it.name + ' (' + it.qty + ')'; }).join(', ');
-        var ph = (inv.buyerRaw && inv.buyerRaw.ph) ? inv.buyerRaw.ph : '—';
+        // Extract medicine names from items
+        var meds = (inv.items || []).map(function (it) {
+          var name = it.product_name || it.name || 'Unknown';
+          return name + ' (' + (it.qty || 0) + ')';
+        }).join(', ');
+        var totalQty = (inv.items || []).reduce(function(sum, it) { return sum + (it.qty || 0); }, 0);
+        var phone = inv.customer_phone || '—';
+        var statusBadgeClass = inv.payment_status === 'paid' ? 'bdg-g' : (inv.payment_status === 'partial' ? 'bdg-y' : 'bdg-r');
+        var statusText = inv.payment_status === 'paid' ? 'Paid' : (inv.payment_status === 'partial' ? 'Partial' : 'Pending');
+
         return '<tr style="border-bottom:1px solid var(--border);font-size:12px">'
-          + '<td style="padding:10px 8px;color:var(--text3)">' + fmtDate(inv.date) + '</td>'
-          + '<td style="padding:10px 8px;font-weight:600">' + inv.invNo + '</td>'
-          + '<td style="padding:10px 8px;font-weight:600">' + inv.buyerName + '</td>'
-          + '<td style="padding:10px 8px">' + ph + '</td>'
+          + '<td style="padding:10px 8px;color:var(--text3)">' + inv.invoice_date + '</td>'
+          + '<td style="padding:10px 8px;font-weight:600">' + (inv.invoice_number || '—') + '</td>'
+          + '<td style="padding:10px 8px;font-weight:600">' + (inv.customer_name || 'Unknown') + '</td>'
+          + '<td style="padding:10px 8px">' + phone + '</td>'
           + '<td style="padding:10px 8px;max-width:250px;white-space:normal;font-size:11px">' + meds + '</td>'
-          + '<td style="padding:10px 8px;text-align:center">' + (inv.totalQty || 0) + '</td>'
-          + '<td style="padding:10px 8px;font-weight:600;text-align:right">₹' + (inv.net || 0).toFixed(2) + '</td>'
-          + '<td style="padding:10px 8px"><span class="bdg bdg-a">' + inv.pay + '</span></td>'
+          + '<td style="padding:10px 8px;text-align:center">' + totalQty + '</td>'
+          + '<td style="padding:10px 8px;font-weight:600;text-align:right">₹' + (inv.grand_total || 0).toFixed(2) + '</td>'
+          + '<td style="padding:10px 8px"><span class="bdg ' + statusBadgeClass + '">' + statusText + '</span></td>'
           + '<td style="padding:10px 8px;text-align:right;white-space:nowrap">'
-          + '<button class="btn btn-g btn-sm" onclick="viewFinalInvoice(\'' + inv.id + '\')" style="margin-right:4px">View</button>'
-          + '<button class="btn btn-b btn-sm" onclick="downloadFinalInvoicePDF(\'' + inv.invNo + '\')" title="Download PDF">'
-          + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
-          + '</button>'
+          + '<button class="btn btn-g btn-sm" onclick="viewPatientInvoice(\'' + inv.id + '\')" style="margin-right:4px">View</button>'
           + '</td></tr>';
       }).join('');
+    }
+
+    async function viewPatientInvoice(invoiceId) {
+      try {
+        var invoice = await apiCall('/api/patient-tracker/invoice/' + invoiceId);
+
+        if (!invoice) {
+          toast('Invoice not found', 'red');
+          return;
+        }
+
+        // Build display data from invoice (handle both old and new formats)
+        var invData = invoice.data || invoice;
+
+        // If using new format, reconstruct the data object for triggerPrint
+        if (!invData.data && invoice.items) {
+          // Fetch products to map product_id to names
+          var allProducts = await apiCall('/api/products', 'GET');
+          var productMap = {};
+          allProducts.forEach(p => {
+            productMap[p.id] = p;
+          });
+
+          // Fetch full customer details
+          var customer = {};
+          try {
+            customer = await apiCall('/api/customers/' + invoice.customer_id, 'GET');
+          } catch (e) {
+            console.log('Could not fetch customer details:', e.message);
+          }
+
+          // Enrich items with product names and details
+          var enrichedItems = (invoice.items || []).map(function (item) {
+            var product = productMap[item.product_id] || {};
+            var amount = (item.qty || 0) * (item.sale_rate || 0);
+            var cgstPct = parseFloat(item.cgst) || 0;
+            var sgstPct = parseFloat(item.sgst) || 0;
+            var cgstAmt = amount * (cgstPct / 100);
+            var sgstAmt = amount * (sgstPct / 100);
+            var totalGstAmt = cgstAmt + sgstAmt;
+            return {
+              product_id: item.product_id,
+              name: product.name || item.product_name || 'Unknown Product',
+              batch: item.batch || '—',
+              exp: item.expiry || item.exp || '—',
+              sch: item.sch || item.scheme || product.pack || '—',
+              pack: item.pack || product.pack || '—',
+              hsn: item.hsn_code || item.hsn || product.hsn_code || '—',
+              comp: item.company || item.comp || product.company || '—',
+              mrp: item.mrp || product.mrp || 0,
+              qty: item.qty || 0,
+              free: 0,
+              sellRate: item.sale_rate || 0,
+              amount: amount,
+              disc: item.discount || item.disc || 0,
+              discAmount: (item.discount || item.disc || 0),
+              gst: (cgstPct + sgstPct),
+              gstAmount: totalGstAmt,
+              cgst: cgstPct,
+              sgst: sgstPct,
+              igst: totalGstAmt
+            };
+          });
+
+          // Build buyerRaw from customer details
+          var buyerRaw = {
+            name: customer.name || invoice.customer_name || '',
+            phone: customer.phone || '',
+            addr: customer.address || '',
+            city: customer.city || '',
+            pin: customer.pincode || '',
+            state: customer.state || 'Telangana',
+            door: customer.door_number || '',
+            gst: customer.gstin || '',
+            age: customer.age || '',
+            gender: customer.gender || '',
+            doc: customer.doctor_name || '',
+            hosp: customer.hospital_name || '',
+            docPh: customer.doctor_phone || '',
+            member: customer.is_member || false,
+            memberId: customer.member_id || '',
+            dl1: customer.dl1 || '',
+            dl2: customer.dl2 || ''
+          };
+
+          // Patient invoices are always of type 'patient'
+          invData = {
+            invNo: invoice.invoice_number || '',
+            buyerName: customer.name || invoice.customer_name || '',
+            type: 'patient',
+            date: invoice.invoice_date || '',
+            pay: invoice.payment_mode || '',
+            subtotal: invoice.subtotal || 0,
+            gst: invoice.total_gst || 0,
+            totalCgst: 0,
+            totalSgst: 0,
+            totalIgst: 0,
+            discount: invoice.discount_amount || 0,
+            charity: invoice.charity_amount || 0,
+            note: invoice.notes || '',
+            net: invoice.grand_total || 0,
+            items: enrichedItems,
+            buyerRaw: buyerRaw,
+            dynamicData: {},
+            gstMap: {},
+            totalQty: enrichedItems.reduce(function (sum, it) { return sum + (it.qty || 0); }, 0),
+            totalItems: enrichedItems.length,
+            sub: invoice.subtotal || 0,
+            sellerDetails: DB.settings || {}
+          };
+        }
+
+        console.log('Viewing patient invoice:', invData);
+        triggerPrint(invData, false);
+      } catch (e) {
+        console.error('Error viewing invoice:', e);
+        toast('Error loading invoice details', 'red');
+      }
     }
 
     async function renderDash() {
@@ -8307,7 +8942,7 @@
           return '<tr style="' + bg + '">'
             + '<td style="color:var(--text3)">' + (i + 1) + '</td>'
             + '<td style="font-weight:600">' + (s.product_name || '—') + '</td>'
-            + '<td class="mn">' + (s.batch_no || '—') + '</td>'
+            + '<td class="mn">' + (s.batch || '—') + '</td>'
             + '<td style="font-weight:500">' + expDateStr + '</td>'
             + '<td>' + s.quantity + '</td>'
             + '<td>' + badge + '</td>'
@@ -8396,10 +9031,31 @@
       go('print', null);
     }
 
-    function doPrint() {
+    async function doPrint() {
       var data = _currentPrintData;
       if (!data) { toast('No invoice loaded.', 'red'); return; }
-      printInNewWindow(buildInvHtml(data, DB.settings, _currentPrintIsProforma), data.invNo);
+      toast('Generating PDF...', 'blue');
+
+      try {
+        // Build invoice HTML
+        var invoiceHtml = buildInvHtml(data, DB.settings, _currentPrintIsProforma);
+
+        // Configure PDF options
+        var opt = {
+          margin: 10,
+          filename: (_currentPrintIsProforma ? 'Proforma_' : 'Invoice_') + (data.invNo || 'Document').replace(/[^a-z0-9\-]/gi, '_') + '.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Generate PDF using same method as final invoices
+        await html2pdf().set(opt).from(invoiceHtml).save();
+        toast('✅ PDF Downloaded!', 'green');
+      } catch (e) {
+        console.error('PDF error:', e);
+        toast('Error downloading PDF: ' + e.message, 'red');
+      }
     }
 
     function saveInvPDF() {
@@ -8408,11 +9064,35 @@
       printInNewWindow(buildInvHtml(data, DB.settings, _currentPrintIsProforma), data.invNo);
     }
 
-    function saveProformaPDF() {
+    async function saveProformaPDF() {
       if (!pendingProforma) { toast('No proforma loaded.', 'amber'); return; }
-      _currentPrintData = pendingProforma;
-      _currentPrintIsProforma = true;
-      printInNewWindow(buildInvHtml(pendingProforma, DB.settings, true), 'PRO-' + pendingProforma.invNo);
+      toast('Generating Proforma PDF...', 'blue');
+
+      try {
+        // Extract actual data from pendingProforma wrapper
+        var dataToUse = pendingProforma.data || pendingProforma;
+        _currentPrintData = dataToUse;
+        _currentPrintIsProforma = true;
+
+        // Build invoice HTML (same as regular invoices)
+        var invoiceHtml = buildInvHtml(dataToUse, DB.settings, true);
+
+        // Configure PDF options (same as regular invoices)
+        var opt = {
+          margin: 10,
+          filename: 'Proforma_' + (dataToUse.invNo || 'Invoice').replace(/[^a-z0-9\-]/gi, '_') + '.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Generate PDF using same method as regular invoices
+        await html2pdf().set(opt).from(invoiceHtml).save();
+        toast('✅ Proforma PDF downloaded!', 'green');
+      } catch (e) {
+        console.error('Proforma PDF error:', e);
+        toast('Error downloading PDF: ' + e.message, 'red');
+      }
     }
 
     function printInNewWindow(html, title) {
@@ -8675,10 +9355,7 @@
 
         if (!data) { toast('Data not found', 'red'); return; }
 
-        const container = document.getElementById('invoice-print');
-        if (container) {
-          container.innerHTML = buildInvHtml(data, DB.settings, type === 'draft');
-        }
+        const invoiceHtml = buildInvHtml(data, DB.settings, type === 'draft');
 
         const opt = {
           margin: 10,
@@ -8688,7 +9365,7 @@
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        await html2pdf().set(opt).from(container).save();
+        await html2pdf().set(opt).from(invoiceHtml).save();
         toast('PDF Downloaded!', 'green');
       } catch (e) {
         console.error('PDF error:', e);
