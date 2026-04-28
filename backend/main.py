@@ -4,7 +4,7 @@ All endpoints connected to Supabase database
 UI → FastAPI → Supabase flow
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -14,6 +14,8 @@ from datetime import datetime, date, timedelta
 from uuid import uuid4
 from dotenv import load_dotenv
 import time
+import os
+import shutil
 
 from backend.supabase_client import (
     supabase,
@@ -744,6 +746,71 @@ async def delete_existing_purchase_invoice(invoice_id: str):
         await delete_purchase_items(invoice_id)
         await delete_purchase_invoice(invoice_id)
         return {"message": "Purchase invoice deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================================================
+# PURCHASE INVOICE PDF ENDPOINTS
+# ============================================================================
+
+@app.post("/api/purchase-invoices/{invoice_id}/upload-pdf")
+async def upload_purchase_invoice_pdf(invoice_id: str, file: UploadFile = File(...)):
+    """Upload PDF file for purchase invoice"""
+    try:
+        # Verify invoice exists
+        invoice = await get_purchase_invoice_by_id(invoice_id)
+        if not invoice:
+            raise HTTPException(status_code=404, detail="Purchase invoice not found")
+
+        # Create storage directory if it doesn't exist
+        storage_dir = Path("storage/pdfs")
+        storage_dir.mkdir(parents=True, exist_ok=True)
+
+        # Save file with invoice_id as filename
+        file_path = storage_dir / f"{invoice_id}.pdf"
+        with open(file_path, "wb") as f:
+            contents = await file.read()
+            f.write(contents)
+
+        # Update invoice with pdf_file_path
+        pdf_path = f"storage/pdfs/{invoice_id}.pdf"
+        await update_purchase_invoice(invoice_id, {"pdf_file_path": pdf_path})
+
+        return {"message": "PDF uploaded successfully", "file_path": pdf_path}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/purchase-invoices/{invoice_id}/pdf")
+async def download_purchase_invoice_pdf(invoice_id: str):
+    """Download PDF file for purchase invoice"""
+    try:
+        # Verify invoice exists
+        invoice = await get_purchase_invoice_by_id(invoice_id)
+        if not invoice:
+            raise HTTPException(status_code=404, detail="Purchase invoice not found")
+
+        # Check if PDF exists - try new naming first, then search for old naming pattern
+        storage_dir = Path("storage/pdfs")
+        file_path = storage_dir / f"{invoice_id}.pdf"
+
+        if not file_path.exists():
+            # Search for PDFs with old naming pattern (invoice_id_hash.pdf)
+            import glob
+            old_pattern_files = list(storage_dir.glob(f"{invoice_id}_*.pdf"))
+            if old_pattern_files:
+                file_path = old_pattern_files[0]  # Use first match
+            else:
+                raise HTTPException(status_code=404, detail="PDF file not found")
+
+        return FileResponse(
+            path=file_path,
+            media_type="application/pdf",
+            filename=f"purchase_invoice_{invoice_id}.pdf"
+        )
     except HTTPException:
         raise
     except Exception as e:
