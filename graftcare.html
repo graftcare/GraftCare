@@ -2267,13 +2267,59 @@
                   <span style="color:var(--red);min-width:65px;text-align:right" id="pu-ds">-&#8377;0.00</span>
                 </div>
               </div>
+              <div class="sr"><span>Rounding</span><span id="pu-s-round">&#8377;0.00</span></div>
               <div class="sr tot"><span>Grand total</span><span id="pu-s-tot">&#8377;0.00</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-t">Attachments (Optional)</div>
+            <div class="fld">
+              <label>Upload Invoice PDF</label>
+              <input type="file" id="pu-pdf" accept="application/pdf" style="padding:8px;border:1px solid var(--border);border-radius:4px;width:100%;cursor:pointer" />
+              <div style="font-size:12px;color:var(--text2);margin-top:4px">Optional: Attach the original PDF invoice from vendor</div>
+              <div id="pu-pdf-status" style="margin-top:8px;font-size:12px;color:var(--green);display:none">✓ PDF selected</div>
             </div>
           </div>
 
           <div class="btn-row no-print">
             <button class="btn btn-p" onclick="savePurchase()">Save &amp; add to stock</button>
             <button class="btn btn-g" onclick="go('stock',null)">View stock</button>
+          </div>
+        </div>
+
+        <!-- MANAGE PDF UPLOADS -->
+        <div id="pg-pdf-upload" class="page">
+          <div class="pg-title">Manage Invoice PDFs</div>
+          <div class="pg-sub">Upload PDFs for existing purchase invoices.</div>
+
+          <div class="card">
+            <div class="card-t">Search & Upload</div>
+            <div class="g3" style="margin-bottom:12px">
+              <div class="fld">
+                <label>Filter by Vendor</label>
+                <input type="text" id="pdf-vendor-filter" placeholder="Search vendor name..."
+                  oninput="filterPdfInvoices()" style="padding:8px;border:1px solid var(--border);border-radius:4px;width:100%">
+              </div>
+              <div class="fld">
+                <label>Filter by Invoice No</label>
+                <input type="text" id="pdf-invoice-filter" placeholder="Search invoice number..."
+                  oninput="filterPdfInvoices()" style="padding:8px;border:1px solid var(--border);border-radius:4px;width:100%">
+              </div>
+              <div class="fld">
+                <label>Show</label>
+                <select id="pdf-status-filter" onchange="filterPdfInvoices()"
+                  style="padding:8px;border:1px solid var(--border);border-radius:4px;width:100%">
+                  <option value="">All invoices</option>
+                  <option value="with-pdf">With PDF</option>
+                  <option value="without-pdf">Without PDF</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div id="pdf-upload-list" style="margin-top:12px">
+            <div class="card"><div class="empty">Loading invoices...</div></div>
           </div>
         </div>
 
@@ -2575,7 +2621,7 @@
                 registered member)</span>
             </div>
           </div>
-          <div class="card">
+          <div class="card" style="display:none">
             <div class="card-t">Invoice header</div>
             <div class="g4">
               <div class="fld" style="display:none"><label>Invoice no.</label><input id="sal-invno" readonly /></div>
@@ -2590,8 +2636,8 @@
               <div class="fld"></div>
             </div>
             <div id="sal-dynamic-field" class="g3" style="display:grid;margin-top:10px">
-              <div class="fld"><label>Received By (Name) <span style="color:var(--red)">*</span></label><input
-                  id="sal-rec-by" required placeholder="Name" /></div>
+              <div class="fld"><label>Received By (Name)</label><input
+                  id="sal-rec-by" placeholder="Name" /></div>
               <div class="fld"></div>
             </div>
             <!-- FIX: Added missing sal-note input referenced in JS -->
@@ -2672,6 +2718,69 @@
               </div>
             </div>
           </div>
+
+          <div class="card">
+            <div class="card-t">Payment Details (Optional)</div>
+            <div class="g3">
+              <div class="fld">
+                <label>Payment Mode</label>
+                <select id="sal-pay-mode" onchange="handlePaymentMode()">
+                  <option value="">-- Select --</option>
+                  <option value="Cash">Cash</option>
+                  <option value="UPI">UPI</option>
+                  <option value="Cheque">Cheque</option>
+                  <option value="Debit Card">Debit Card</option>
+                  <option value="Credit Card">Credit Card</option>
+                </select>
+              </div>
+              <div class="fld">
+                <label>Amount Paid</label>
+                <input type="number" id="sal-amount-paid" placeholder="Amount" step="0.01" />
+              </div>
+              <div class="fld"></div>
+            </div>
+
+            <!-- UPI Fields -->
+            <div id="sal-upi-fields" style="display:none;margin-top:12px">
+              <div class="g2">
+                <div class="fld">
+                  <label>Transaction ID</label>
+                  <input type="text" id="sal-transaction-id" placeholder="UPI Ref No" />
+                </div>
+                <div class="fld"></div>
+              </div>
+            </div>
+
+            <!-- Cheque Fields -->
+            <div id="sal-cheque-fields" style="display:none;margin-top:12px">
+              <div class="g3">
+                <div class="fld">
+                  <label>Cheque Number</label>
+                  <input type="text" id="sal-cheque-number" placeholder="Cheque No" />
+                </div>
+                <div class="fld">
+                  <label>Bank Name</label>
+                  <input type="text" id="sal-cheque-bank" placeholder="Bank Name" />
+                </div>
+                <div class="fld">
+                  <label>Cheque Date</label>
+                  <input type="date" id="sal-cheque-date" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Fields (Debit/Credit) -->
+            <div id="sal-card-fields" style="display:none;margin-top:12px">
+              <div class="g2">
+                <div class="fld">
+                  <label>Transaction ID</label>
+                  <input type="text" id="sal-card-transaction-id" placeholder="Reference/Auth No" />
+                </div>
+                <div class="fld"></div>
+              </div>
+            </div>
+          </div>
+
           <div class="btn-row no-print">
             <button class="btn btn-p" onclick="saveDraftOnly()">💾 Save as Draft</button>
             <button class="btn btn-b" onclick="go('proforma-history',null)">View Drafts</button>
@@ -2758,7 +2867,6 @@
                     <th style="padding:12px 10px;text-align:left">Invoice No.</th>
                     <th style="padding:12px 10px;text-align:left">Customer Name</th>
                     <th style="padding:12px 10px;text-align:left">Type</th>
-                    <th style="padding:12px 10px;text-align:left">Member</th>
                     <th style="padding:12px 10px;text-align:left">Medicine(s)</th>
                     <th style="padding:12px 10px;text-align:left">Qty</th>
                     <th style="padding:12px 10px;text-align:right">Amount</th>
@@ -2769,7 +2877,7 @@
                 </thead>
                 <tbody id="hist-body">
                   <tr>
-                    <td colspan="11" class="empty">No invoices yet.</td>
+                    <td colspan="10" class="empty">No invoices yet.</td>
                   </tr>
                 </tbody>
               </table>
@@ -3246,15 +3354,20 @@
       var pay = document.getElementById('pu-pay');
       var wrap = document.getElementById('pu-dynamic-field');
       if (pay && wrap) {
+        var amtPaidVal = document.getElementById('pu-amt-paid')?.value || '';
+        var paidByVal = document.getElementById('pu-paid-by')?.value || '';
+        var transactionIdVal = document.getElementById('pu-transaction-id')?.value || '';
+        var chequeBankVal = document.getElementById('pu-cheque-bank')?.value || '';
+
         if (pay.value === 'Cash') {
           wrap.style.display = 'grid';
-          wrap.innerHTML = '<div class="fld"><label>Amount Paid <span style="color:var(--red)">*</span></label><input type="number" id="pu-amt-paid" required placeholder="Amount" /></div><div class="fld"><label>Paid By (Name) <span style="color:var(--red)">*</span></label><input id="pu-paid-by" required placeholder="Name" /></div>';
+          wrap.innerHTML = '<div class="fld"><label>Amount Paid <span style="color:var(--red)">*</span></label><input type="number" id="pu-amt-paid" required placeholder="Amount" value="' + amtPaidVal + '" /></div><div class="fld"><label>Paid By (Name) <span style="color:var(--red)">*</span></label><input id="pu-paid-by" required placeholder="Name" value="' + paidByVal + '" /></div>';
         } else if (pay.value === 'UPI / Online') {
           wrap.style.display = 'grid';
-          wrap.innerHTML = '<div class="fld"><label>Amount Paid <span style="color:var(--red)">*</span></label><input type="number" id="pu-amt-paid" required placeholder="Amount" /></div><div class="fld"><label>Transaction ID <span style="color:var(--red)">*</span></label><input id="pu-transaction-id" required placeholder="UPI Reference ID" /></div>';
+          wrap.innerHTML = '<div class="fld"><label>Amount Paid <span style="color:var(--red)">*</span></label><input type="number" id="pu-amt-paid" required placeholder="Amount" value="' + amtPaidVal + '" /></div><div class="fld"><label>Paid By (Name) <span style="color:var(--red)">*</span></label><input id="pu-paid-by" required placeholder="Name" value="' + paidByVal + '" /></div><div class="fld"><label>Transaction ID <span style="color:var(--red)">*</span></label><input id="pu-transaction-id" required placeholder="UPI Reference ID" value="' + transactionIdVal + '" /></div>';
         } else if (pay.value === 'Cheque') {
           wrap.style.display = 'grid';
-          wrap.innerHTML = '<div class="fld"><label>Amount Paid <span style="color:var(--red)">*</span></label><input type="number" id="pu-amt-paid" required placeholder="Amount" /></div><div class="fld"><label>Transaction ID <span style="color:var(--red)">*</span></label><input id="pu-transaction-id" required placeholder="Cheque Number" /></div>';
+          wrap.innerHTML = '<div class="fld"><label>Amount Paid <span style="color:var(--red)">*</span></label><input type="number" id="pu-amt-paid" required placeholder="Amount" value="' + amtPaidVal + '" /></div><div class="fld"><label>Paid By (Name) <span style="color:var(--red)">*</span></label><input id="pu-paid-by" required placeholder="Name" value="' + paidByVal + '" /></div><div class="fld"><label>Cheque Bank <span style="color:var(--red)">*</span></label><input id="pu-cheque-bank" required placeholder="Bank Name" value="' + chequeBankVal + '" /></div><div class="fld"><label>Cheque Number <span style="color:var(--red)">*</span></label><input id="pu-transaction-id" required placeholder="Cheque Number" value="' + transactionIdVal + '" /></div>';
         } else if (pay.value === 'Credit') {
           wrap.style.display = 'grid';
           wrap.innerHTML = '<div class="fld"><label>Expected payment date <span style="color:var(--red)">*</span></label><input type="date" id="pu-exp-pay" required /></div><div class="fld"></div>';
@@ -3660,12 +3773,13 @@
       var s = DB.settings;
       return '<b>' + (s.name || 'GRAFT CARE PHARMA') + '</b> &nbsp;|&nbsp; GSTIN: ' + (s.gst || '—') + '<br/>DL 20B: ' + (s.dl1 || '—') + ' &nbsp;|&nbsp; DL 21B: ' + (s.dl2 || '—') + '<br/>Ph: ' + (s.ph || '—') + ' &nbsp;|&nbsp; ' + (s.addr1 || '') + ' ' + (s.addr2 || '') + ' ' + (s.city || '');
     }
-    function refreshSalPreview() { var el = document.getElementById('sal-my-preview'); if (el) el.innerHTML = myPreviewHtml(); }
+    function refreshSalPreview() { var el = document.getElementById('sal-my-preview'); if (el) el.innerHTML = myPreviewHtml(); calcSal(); }
     async function refreshPuPreview() {
       var el = document.getElementById('pu-my-preview');
       if (el) el.innerHTML = myPreviewHtml();
       // Initialize purchase form with defaults and API data
       await initPurchaseForm();
+      calcPu();
     }
 
     // ─── FIXED-DROPDOWN POSITIONER ────────────────────────────────────────────────
@@ -3951,7 +4065,7 @@
       var dynField = document.getElementById('sal-dynamic-field');
       if (mode === 'Cash') {
         dynField.style.display = 'grid';
-        dynField.innerHTML = '<div class="fld"><label>Received By (Name) <span style="color:var(--red)">*</span></label><input id="sal-rec-by" required placeholder="Name" /></div><div class="fld"></div>';
+        dynField.innerHTML = '<div class="fld"><label>Received By (Name)</label><input id="sal-rec-by" placeholder="Name" /></div><div class="fld"></div>';
       } else if (mode === 'UPI / Online') {
         dynField.style.display = 'grid';
         dynField.innerHTML = '<div class="fld"><label>UPI ID / Transaction Reference <span style="color:var(--red)">*</span></label><input id="sal-upi-id" required placeholder="e.g. 9876543210@upi" /></div><div class="fld"></div>';
@@ -3962,6 +4076,28 @@
         dynField.style.display = 'none';
         dynField.innerHTML = '';
       }
+    }
+
+    function handlePaymentMode() {
+      var mode = document.getElementById('sal-pay-mode').value;
+      var upiFields = document.getElementById('sal-upi-fields');
+      var chequeFields = document.getElementById('sal-cheque-fields');
+      var cardFields = document.getElementById('sal-card-fields');
+
+      // Hide all fields first
+      upiFields.style.display = 'none';
+      chequeFields.style.display = 'none';
+      cardFields.style.display = 'none';
+
+      // Show relevant fields based on payment mode
+      if (mode === 'UPI') {
+        upiFields.style.display = 'block';
+      } else if (mode === 'Cheque') {
+        chequeFields.style.display = 'block';
+      } else if (mode === 'Debit Card' || mode === 'Credit Card') {
+        cardFields.style.display = 'block';
+      }
+      // For Cash, no additional fields needed
     }
 
     // ─── PURCHASE TRACKING (Ordered, Delivered, Expected) ────────────────────────
@@ -4201,10 +4337,12 @@
       var dt = document.getElementById('pu-dt').value;
       var dv = parseFloat(document.getElementById('pu-dv').value || 0);
       var dAmt = dt === 'pct' ? (sub + gst) * (dv / 100) : dv; dAmt = Math.min(dAmt, sub + gst);
+      var net = sub + gst - dAmt; var rounded = Math.round(net); var rounding = (rounded - net).toFixed(2);
       document.getElementById('pu-s-sub').textContent = '₹' + sub.toFixed(2);
       document.getElementById('pu-s-gst').textContent = '+₹' + gst.toFixed(2);
       document.getElementById('pu-ds').textContent = '-₹' + dAmt.toFixed(2);
-      document.getElementById('pu-s-tot').textContent = '₹' + (sub + gst - dAmt).toFixed(2);
+      document.getElementById('pu-s-round').textContent = '₹' + rounding;
+      document.getElementById('pu-s-tot').textContent = '₹' + rounded.toFixed(2);
     }
 
     // Initialize purchase form with defaults and auto-fill capabilities
@@ -4270,13 +4408,24 @@
         var amountPaid = parseFloat(document.getElementById('pu-amt-paid')?.value) || 0;
         var paidBy = document.getElementById('pu-paid-by')?.value.trim();
         var transactionId = document.getElementById('pu-transaction-id')?.value.trim() || '';
+        var chequeBank = document.getElementById('pu-cheque-bank')?.value.trim() || '';
 
         console.log('Fields:', { vendorName, vendorPhone, vendorGST, city, pincode, invoiceNo, invoiceDate, paymentMode, amountPaid, paidBy, transactionId });
 
         // Mandatory fields check
         if (!vendorName || !vendorPhone || !vendorGST || !city || !pincode || !invoiceNo || !invoiceDate || !amountPaid || !paidBy || !paymentMode) {
-          console.log('Missing fields');
+          console.log('Missing fields:', {vendorName, vendorPhone, vendorGST, city, pincode, invoiceNo, invoiceDate, amountPaid, paidBy, paymentMode});
           showError('Please fill all mandatory fields: Vendor name, Phone, GSTIN, City, Pincode, Invoice No, Date, Payment Mode, Amount Paid, Paid By');
+          return;
+        }
+
+        // Payment mode specific validation
+        if (paymentMode === 'UPI / Online' && !transactionId) {
+          showError('Please enter Transaction ID (UPI Reference) for UPI payments');
+          return;
+        }
+        if (paymentMode === 'Cheque' && (!transactionId || !chequeBank)) {
+          showError('Please enter both Cheque Number and Bank Name for Cheque payments');
           return;
         }
 
@@ -4410,6 +4559,8 @@
             address: document.getElementById('pu-vaddr')?.value.trim() || '',
             city: city,
             pincode: pincode,
+            door_number: document.getElementById('pu-vdoor')?.value.trim() || '',
+            state: document.getElementById('pu-vstate')?.value || '',
             bank_name: document.getElementById('pu-vbank-name')?.value.trim() || '',
             bank_acc: document.getElementById('pu-vbank-acc')?.value.trim() || '',
             bank_ifsc: document.getElementById('pu-vbank-ifsc')?.value.trim() || ''
@@ -4443,18 +4594,45 @@
           payment_mode: paymentMode,
           amount_paid: amountPaid,
           paid_by: paidBy,
-          transaction_id: transactionId,
+          transaction_id: transactionId || '',
           subtotal: subtotal,
           total_gst: totalGST,
           discount_amount: discountAmount,
           grand_total: grandTotal,
+          buyer_state: document.getElementById('pu-mystate')?.value || '',
           notes: document.getElementById('pu-note')?.value.trim() || '',
           items: products
         };
 
+        // For Cheque payments, store bank name in notes if not already there
+        if (paymentMode === 'Cheque' && chequeBank) {
+          purchaseInvoice.notes = (purchaseInvoice.notes ? purchaseInvoice.notes + ' | ' : '') + 'Cheque Bank: ' + chequeBank;
+        }
+
         console.log('Creating purchase invoice with items:', products.length);
         var response = await apiCall('/api/purchase-invoices', 'POST', purchaseInvoice);
         console.log('API Response:', response);
+
+        // Handle PDF upload if file was selected
+        var pdfFile = document.getElementById('pu-pdf')?.files[0];
+        if (pdfFile && response && response.id) {
+          try {
+            var formData = new FormData();
+            formData.append('file', pdfFile);
+            var uploadResponse = await fetch(API_URL + '/api/purchase-invoices/' + response.id + '/upload-pdf', {
+              method: 'POST',
+              body: formData
+            });
+            if (uploadResponse.ok) {
+              console.log('PDF uploaded successfully');
+            } else {
+              console.log('Warning: PDF upload failed, but invoice was saved');
+            }
+          } catch (pdfError) {
+            console.log('Warning: PDF upload error - invoice was saved but PDF upload failed:', pdfError.message);
+          }
+        }
+
         showSuccess('Purchase invoice saved successfully! Stock updated.');
 
         // Clear form
@@ -4467,6 +4645,8 @@
         document.getElementById('pu-s-sub').textContent = '₹0.00';
         document.getElementById('pu-s-gst').textContent = '+₹0.00';
         document.getElementById('pu-s-tot').textContent = '₹0.00';
+        document.getElementById('pu-pdf').value = '';
+        document.getElementById('pu-pdf-status').style.display = 'none';
 
         // Refresh inventory
         renderStock();
@@ -5072,6 +5252,17 @@
 
               html += '</tbody></table></div>';
             }
+
+            // PDF section
+            if (inv.pdf_file_path) {
+              html += '<div style="margin-top:12px;padding:8px;background:var(--surface2);border-radius:6px;display:flex;align-items:center;justify-content:space-between">';
+              html += '<div style="display:flex;align-items:center;gap:8px">';
+              html += '<span style="font-size:14px;color:var(--green);font-weight:500">📄 PDF Attached</span>';
+              html += '</div>';
+              html += '<button onclick="downloadPDF(\'' + inv.id + '\')" style="padding:6px 12px;background:var(--green);color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;font-weight:500">View PDF</button>';
+              html += '</div>';
+            }
+
             html += '</div>';
             html += '</div>';
           });
@@ -5745,6 +5936,7 @@
       var totalGst = cgstTotal + sgstTotal;
       var dAmt = dt === 'pct' ? (sub + totalGst) * (dv / 100) : dv; dAmt = Math.min(dAmt, sub + totalGst);
       var net = sub + totalGst - dAmt - charity; var rounded = Math.round(net); var rounding = (rounded - net).toFixed(2);
+      console.log('calcSal - sub:', sub, 'gst:', totalGst, 'dAmt:', dAmt, 'charity:', charity, 'net:', net, 'rounded:', rounded, 'rounding:', rounding);
       document.getElementById('sal-s-sub').textContent = '₹' + sub.toFixed(2);
       var cgstEl = document.getElementById('sal-s-cgst'), sgstEl = document.getElementById('sal-s-sgst'), igstEl = document.getElementById('sal-s-igst');
       if (cgstEl) cgstEl.textContent = '+₹' + cgstTotal.toFixed(2);
@@ -5894,6 +6086,7 @@
               try {
                 // Fetch complete customer details from API
                 var details = await apiCall('/api/customer-details?customer_type=retailer&customer_name=' + encodeURIComponent(name));
+                console.log('Retailer API Response:', details);
 
                 // Fill all available fields (using correct database field names)
                 document.getElementById('r-name').value = details.customer_name || name || '';
@@ -5904,8 +6097,10 @@
                 document.getElementById('r-pin').value = details.customer_pincode || '';
                 document.getElementById('r-dl1').value = details.customer_dl1 || '';
                 document.getElementById('r-dl2').value = details.customer_dl2 || '';
-                document.getElementById('r-gst').value = details.customer_gst || '';
-                document.getElementById('r-state').value = details.customer_state || '';
+                document.getElementById('r-gst').value = details.customer_gstin || details.customer_gst || details.gstin || details.gst || '';
+                document.getElementById('r-state').value = details.customer_state || details.state || '';
+                document.getElementById('r-age').value = details.customer_age || details.age || '';
+                document.getElementById('r-gender').value = details.customer_gender || details.gender || '';
 
                 drop.classList.remove('show');
                 toast('Customer details auto-filled from past invoices.', 'blue');
@@ -5954,6 +6149,7 @@
           item.onclick = async function () {
             try {
               var details = await apiCall('/api/customer-details?customer_type=retailer&customer_name=' + encodeURIComponent(retailerName));
+              console.log('Retailer API Response (phone):', details);
               document.getElementById('r-name').value = details.customer_name || retailerName || '';
               document.getElementById('r-ph').value = details.customer_phone || '';
               document.getElementById('r-door').value = details.customer_door_number || '';
@@ -5962,8 +6158,10 @@
               document.getElementById('r-pin').value = details.customer_pincode || '';
               document.getElementById('r-dl1').value = details.customer_dl1 || '';
               document.getElementById('r-dl2').value = details.customer_dl2 || '';
-              document.getElementById('r-gst').value = details.customer_gst || '';
-              document.getElementById('r-state').value = details.customer_state || '';
+              document.getElementById('r-gst').value = details.customer_gstin || details.customer_gst || details.gstin || details.gst || '';
+              document.getElementById('r-state').value = details.customer_state || details.state || '';
+              document.getElementById('r-age').value = details.customer_age || details.age || '';
+              document.getElementById('r-gender').value = details.customer_gender || details.gender || '';
               drop.classList.remove('show'); toast('Customer details auto-filled from past records.', 'blue');
             } catch (e) {
               console.error('Error fetching retailer details:', e);
@@ -6165,7 +6363,7 @@
             item.innerHTML = '<div class="ac-name">' + (v.name || '') + '</div>'
               + '<div class="ac-sub"><span>' + (v.phone || '—') + '</span><span>' + (v.contact_person || '—') + '</span><span>GST: ' + (v.gstin || '—') + '</span></div>';
 
-            item.onclick = function () {
+            item.onclick = async function () {
               // Auto-fill all vendor details from API data
               document.getElementById('pu-vname').value = v.name || '';
               document.getElementById('pu-vcontact').value = v.contact_person || '';
@@ -6176,9 +6374,21 @@
               document.getElementById('pu-vaddr').value = v.address || '';
               document.getElementById('pu-vcity').value = v.city || '';
               document.getElementById('pu-vpin').value = v.pincode || '';
+              document.getElementById('pu-vdoor').value = v.door_number || '';
               document.getElementById('pu-vbank-name').value = v.bank_name || '';
               document.getElementById('pu-vbank-acc').value = v.bank_acc || '';
               document.getElementById('pu-vbank-ifsc').value = v.bank_ifsc || '';
+
+              // Auto-select Vendor State
+              if (v.state) {
+                document.getElementById('pu-vstate').value = v.state;
+              }
+
+              // Auto-select Buyer State from settings if available
+              const buyerState = localStorage.getItem('gcpBuyerState') || '';
+              if (buyerState) {
+                document.getElementById('pu-mystate').value = buyerState;
+              }
 
               drop.classList.remove('show');
               toast('✅ Vendor details auto-filled from database.', 'green');
@@ -6203,8 +6413,7 @@
       var dynData = {};
       if (pay === 'Cash') {
         var elBy = document.getElementById('sal-rec-by');
-        if (!elBy || !elBy.value.trim()) { toast('Please fill Received By.', 'amber'); return null; }
-        dynData = { recBy: elBy.value.trim() };
+        dynData = { recBy: elBy ? elBy.value.trim() : '' };
       } else if (pay === 'UPI / Online') {
         var elUpi = document.getElementById('sal-upi-id');
         if (!elUpi || !elUpi.value.trim()) { toast('Please fill UPI / Txn Ref.', 'amber'); return null; }
@@ -6348,7 +6557,7 @@
         totalSgst: totalSgst,
         totalIgst: totalIgst,
         net: rounded,
-        rounding: rounding,
+        netActual: net,
         items: items,
         buyerLeft: buyerLeft,
         buyerMid: buyerMid,
@@ -6515,6 +6724,13 @@
           discount_value: data.discountValue || 0,
           charity_amount: data.charity || 0,
           grand_total: data.net || 0,
+          // Payment details
+          payment_mode: document.getElementById('sal-pay-mode')?.value || null,
+          amount_paid: parseFloat(document.getElementById('sal-amount-paid')?.value) || null,
+          transaction_id: (document.getElementById('sal-transaction-id')?.value || document.getElementById('sal-card-transaction-id')?.value) || null,
+          cheque_number: document.getElementById('sal-cheque-number')?.value || null,
+          cheque_bank: document.getElementById('sal-cheque-bank')?.value || null,
+          cheque_date: document.getElementById('sal-cheque-date')?.value || null,
           notes: data.note || '',
           items: transformedItems
         };
@@ -7665,9 +7881,7 @@
         toast('Deleting...', 'blue');
 
         var endpoint = '';
-        if (sheet === 'proformas') {
-          endpoint = '/api/proformas/' + id;
-        } else if (sheet === 'invoices') {
+        if (sheet === 'invoices') {
           endpoint = '/api/invoices/' + id;
         } else {
           endpoint = '/api/drafts/' + id;
@@ -7956,11 +8170,11 @@
 
         // Totals
         '<div style="flex:1.4;text-align:right;font-size:9px;line-height:2.15">' +
-        '<div>SubTotal&nbsp;&nbsp;&nbsp;: <b>' + (d.sub || 0).toFixed(2) + '</b></div>' +
-        (d.disc > 0 ? '<div>Less Disc&nbsp;&nbsp;: <b>' + (d.disc || 0).toFixed(2) + '</b></div>' : '') +
-        '<div>GST Amt&nbsp;&nbsp;&nbsp;&nbsp;: <b>' + (d.gst || 0).toFixed(2) + '</b></div>' +
-        (d.charity > 0 ? '<div>Cheyutha(-): <b>' + d.charity.toFixed(2) + '</b></div>' : '') +
-        '<div>Rounding&nbsp;&nbsp;&nbsp;: <b>' + (d.rounding || '0.00') + '</b></div>' +
+        '<div>SubTotal&nbsp;&nbsp;&nbsp;: <b>' + (d.sub || d.subtotal || 0).toFixed(2) + '</b></div>' +
+        ((d.disc || d.discount || d.discount_amount) > 0 ? '<div>Less Disc&nbsp;&nbsp;: <b>' + (d.disc || d.discount || d.discount_amount || 0).toFixed(2) + '</b></div>' : '') +
+        '<div>GST Amt&nbsp;&nbsp;&nbsp;&nbsp;: <b>' + (d.gst || d.total_gst || 0).toFixed(2) + '</b></div>' +
+        ((d.charity || d.charity_amount) > 0 ? '<div>Cheyutha(-): <b>' + (d.charity || d.charity_amount || 0).toFixed(2) + '</b></div>' : '') +
+        '<div>Rounding&nbsp;&nbsp;&nbsp;: <b>' + (function() { var n = parseFloat(d.netActual || d.net) || 0; var r = Math.round(n); var round = (r - n).toFixed(2); console.log('DEBUG Rounding: netActual=', d.netActual, 'net=', d.net, 'n=', n, 'rounded=', r, 'rounding=', round); return '₹' + round; })() + '</b></div>' +
         '</div>' +
 
         '</div>' + // end bottom row
@@ -8122,7 +8336,7 @@
       var upiId = ''; var expPayDate = '';
       var upiEl = document.getElementById('sal-upi-id'); if (upiEl) upiId = upiEl.value;
       var expPayEl = document.getElementById('sal-exp-pay'); if (expPayEl) expPayDate = expPayEl.value;
-      var invData = { invNo: invNo, type: salType, buyerName: buyerName, buyerRaw: buyerRaw, date: invDate, pay: pay, upiId: upiId, expPayDate: expPayDate, note: note, charity: charity, disc: dAmt, gst: gstTotal, net: rounded, rounding: rounding, items: items, buyerLeft: buyerLeft, buyerMid: buyerMid, gstMap: gstMap, totalQty: totalQty, totalItems: totalItems, sub: sub };
+      var invData = { invNo: invNo, type: salType, buyerName: buyerName, buyerRaw: buyerRaw, date: invDate, pay: pay, upiId: upiId, expPayDate: expPayDate, note: note, charity: charity, disc: dAmt, gst: gstTotal, net: rounded, items: items, buyerLeft: buyerLeft, buyerMid: buyerMid, gstMap: gstMap, totalQty: totalQty, totalItems: totalItems, sub: sub };
 
 
 
@@ -8235,7 +8449,6 @@
             + '<td style="padding:10px 8px;font-weight:500">' + inv.invNo + '</td>'
             + '<td style="padding:10px 8px">' + inv.buyerName + '</td>'
             + '<td style="padding:10px 8px"><span class="bdg ' + (inv.type === 'retailer' ? 'bdg-b' : 'bdg-t') + '">' + (inv.type === 'retailer' ? 'Retailer' : 'Patient') + '</span></td>'
-            + '<td style="padding:10px 8px">' + (isMember ? '<span class="bdg bdg-a">&#9733; Member</span>' : '<span style="color:var(--text3)">—</span>') + '</td>'
             + '<td style="padding:10px 8px;max-width:200px;white-space:normal;font-size:11px">' + meds + '</td>'
             + '<td style="padding:10px 8px;text-align:center">' + inv.totalQty + '</td>'
             + '<td style="padding:10px 8px;font-weight:600;text-align:right">&#8377;' + inv.net.toFixed(2) + '</td>'
@@ -8344,6 +8557,7 @@
             var hasPatientFields = invoice.customer_doctor_name || invoice.customer_hospital_name;
             detectedType = hasRetailerFields ? 'retailer' : (hasPatientFields ? 'patient' : 'patient');
           }
+          var netActualVal = (invoice.subtotal || 0) + (invoice.total_gst || 0) - (invoice.discount_amount || 0) - (invoice.charity_amount || 0);
           invData = {
             invNo: invoice.invoice_number || '',
             buyerName: customer.name || invoice.customer_name || '',
@@ -8359,6 +8573,7 @@
             charity: invoice.charity_amount || 0,
             note: invoice.notes || '',
             net: invoice.grand_total || 0,
+            netActual: netActualVal,
             items: enrichedItems,
             buyerRaw: buyerRaw,
             dynamicData: {},
@@ -8465,6 +8680,7 @@
             dl2: customer.dl2 || ''
           };
 
+          var netActualVal = (invoice.subtotal || 0) + (invoice.total_gst || 0) - (invoice.discount_amount || 0) - (invoice.charity_amount || 0);
           invData = {
             invNo: invoice.invoice_number || '',
             buyerName: customer.name || invoice.customer_name || '',
@@ -8477,7 +8693,9 @@
             totalSgst: 0,
             totalIgst: 0,
             discount: invoice.discount_amount || 0,
+            charity: invoice.charity_amount || 0,
             net: invoice.grand_total || 0,
+            netActual: netActualVal,
             items: enrichedItems,
             buyerRaw: buyerRaw,
             dynamicData: {},
@@ -8517,6 +8735,20 @@
       // Load only dashboard on initial page load
       // Other page data will load when user navigates to them
       renderDash();
+
+      // PDF file input listener
+      var pdfInput = document.getElementById('pu-pdf');
+      if (pdfInput) {
+        pdfInput.addEventListener('change', function() {
+          var statusDiv = document.getElementById('pu-pdf-status');
+          if (this.files && this.files.length > 0) {
+            statusDiv.style.display = 'block';
+            statusDiv.textContent = '✓ ' + this.files[0].name + ' selected';
+          } else {
+            statusDiv.style.display = 'none';
+          }
+        });
+      }
     });
 
     // ─── DASHBOARD ────────────────────────────────────────────────────────────────
@@ -8620,8 +8852,13 @@
               customer_name: patient.patient_name,
               customer_phone: patient.customer_phone,
               invoice_date: inv.invoice_date,
+              subtotal: inv.subtotal,
+              discount_amount: inv.discount_amount,
+              discount_type: inv.discount_type,
+              charity_amount: inv.charity_amount,
               grand_total: inv.grand_total,
               payment_status: inv.payment_status,
+              customer_is_member: inv.customer_is_member,
               items: inv.items || [],
               notes: inv.notes
             });
@@ -8655,9 +8892,14 @@
                 customer_name: patient.patient_name,
                 customer_phone: patient.customer_phone,
                 invoice_date: inv.invoice_date,
+                subtotal: inv.subtotal,
+                discount_amount: inv.discount_amount,
+                discount_type: inv.discount_type,
+                charity_amount: inv.charity_amount,
                 items: inv.items || [],
                 grand_total: inv.grand_total,
-                payment_status: inv.payment_status
+                payment_status: inv.payment_status,
+                customer_is_member: inv.customer_is_member
               });
             }
           });
@@ -8678,7 +8920,7 @@
     function displayPTResults(list) {
       var tb = document.getElementById('pt-results-body');
       if (!list.length) {
-        tb.innerHTML = '<tr><td colspan="9" class="empty">No matching patient found.</td></tr>';
+        tb.innerHTML = '<tr><td colspan="10" class="empty">No matching patient found.</td></tr>';
         return;
       }
       tb.innerHTML = list.map(function (inv) {
@@ -8692,14 +8934,27 @@
         var statusBadgeClass = inv.payment_status === 'paid' ? 'bdg-g' : (inv.payment_status === 'partial' ? 'bdg-y' : 'bdg-r');
         var statusText = inv.payment_status === 'paid' ? 'Paid' : (inv.payment_status === 'partial' ? 'Partial' : 'Pending');
 
+        // Show discount if applied
+        var discountDisplay = '';
+        if (inv.discount_amount && inv.discount_amount > 0) {
+          var discountLabel = inv.discount_type === 'pct' ? inv.discount_amount + '%' : '₹' + inv.discount_amount.toFixed(2);
+          discountDisplay = ' (Disc: ' + discountLabel + ')';
+        }
+        if (inv.charity_amount && inv.charity_amount > 0) {
+          discountDisplay += ' (Charity: ₹' + inv.charity_amount.toFixed(2) + ')';
+        }
+
+        // Show member badge
+        var memberBadge = inv.customer_is_member ? ' <span class="bdg" style="background:var(--blue-bg);color:var(--blue)">Member</span>' : '';
+
         return '<tr style="border-bottom:1px solid var(--border);font-size:12px">'
           + '<td style="padding:10px 8px;color:var(--text3)">' + inv.invoice_date + '</td>'
           + '<td style="padding:10px 8px;font-weight:600">' + (inv.invoice_number || '—') + '</td>'
-          + '<td style="padding:10px 8px;font-weight:600">' + (inv.customer_name || 'Unknown') + '</td>'
+          + '<td style="padding:10px 8px;font-weight:600">' + (inv.customer_name || 'Unknown') + memberBadge + '</td>'
           + '<td style="padding:10px 8px">' + phone + '</td>'
           + '<td style="padding:10px 8px;max-width:250px;white-space:normal;font-size:11px">' + meds + '</td>'
           + '<td style="padding:10px 8px;text-align:center">' + totalQty + '</td>'
-          + '<td style="padding:10px 8px;font-weight:600;text-align:right">₹' + (inv.grand_total || 0).toFixed(2) + '</td>'
+          + '<td style="padding:10px 8px;font-weight:600;text-align:right">₹' + (inv.grand_total || 0).toFixed(2) + discountDisplay + '</td>'
           + '<td style="padding:10px 8px"><span class="bdg ' + statusBadgeClass + '">' + statusText + '</span></td>'
           + '<td style="padding:10px 8px;text-align:right;white-space:nowrap">'
           + '<button class="btn btn-g btn-sm" onclick="viewPatientInvoice(\'' + inv.id + '\')" style="margin-right:4px">View</button>'
@@ -8791,6 +9046,7 @@
           };
 
           // Patient invoices are always of type 'patient'
+          var netActualVal = (invoice.subtotal || 0) + (invoice.total_gst || 0) - (invoice.discount_amount || 0) - (invoice.charity_amount || 0);
           invData = {
             invNo: invoice.invoice_number || '',
             buyerName: customer.name || invoice.customer_name || '',
@@ -8806,6 +9062,7 @@
             charity: invoice.charity_amount || 0,
             note: invoice.notes || '',
             net: invoice.grand_total || 0,
+            netActual: netActualVal,
             items: enrichedItems,
             buyerRaw: buyerRaw,
             dynamicData: {},
@@ -9193,6 +9450,29 @@
     init();
 
     // --- PDF Download Functionality ---
+    async function downloadPDF(invoiceId) {
+      try {
+        toast('Downloading PDF...', 'blue');
+        var response = await fetch(API_URL + '/api/purchase-invoices/' + invoiceId + '/pdf');
+        if (!response.ok) {
+          throw new Error('PDF download failed');
+        }
+        var blob = await response.blob();
+        var url = window.URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'purchase_invoice_' + invoiceId + '.pdf';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast('PDF Downloaded!', 'green');
+      } catch (e) {
+        console.error('PDF download error:', e);
+        toast('Error downloading PDF', 'red');
+      }
+    }
+
     async function downloadInvoicePDF(invNo) {
       toast('Generating Invoice PDF...', 'blue');
       const inv = DB.salesInvoices.find(x => x.invNo === invNo);
