@@ -6,7 +6,7 @@ UI → FastAPI → Supabase flow
 
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from pathlib import Path
@@ -802,10 +802,10 @@ async def download_purchase_invoice_pdf(invoice_id: str):
         file_path = f"pdfs/{invoice_id}.pdf"
         try:
             pdf_data = supabase.storage.from_("purchase-invoices").download(file_path)
-            return FileResponse(
-                content=pdf_data,
+            return StreamingResponse(
+                iter([pdf_data]),
                 media_type="application/pdf",
-                filename=f"purchase_invoice_{invoice_id}.pdf"
+                headers={"Content-Disposition": f"attachment; filename=purchase_invoice_{invoice_id}.pdf"}
             )
         except Exception as storage_err:
             # If not found in Supabase, check local storage for backward compatibility
