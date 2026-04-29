@@ -214,13 +214,35 @@ async def get_customer_by_gstin(gstin):
 # ============================================================================
 
 async def get_purchase_items_by_invoice(invoice_id):
-    """Get items from purchase_items table"""
+    """Get items from purchase_items table with product details"""
     try:
-        response = supabase.table("purchase_items").select("*").eq("purchase_invoice_id", invoice_id).execute()
-        return response.data if response.data else []
+        response = supabase.table("purchase_items").select("*,product_id(name)").eq("purchase_invoice_id", invoice_id).execute()
+        items = response.data if response.data else []
+        # Flatten the product name from nested object
+        for item in items:
+            if isinstance(item.get('product_id'), dict) and 'name' in item['product_id']:
+                item['name'] = item['product_id']['name']
+        return items
     except Exception as e:
         print(f"Error fetching purchase items: {e}")
         return []
+
+async def enrich_items_with_product_names(items):
+    """Enrich items with product names by fetching from products table"""
+    try:
+        for item in items:
+            if not item.get('name'):
+                product_id = item.get('product_id')
+                if isinstance(product_id, str):
+                    product = await get_product_by_id(product_id)
+                    if product:
+                        item['name'] = product.get('name', product_id)
+                elif isinstance(product_id, dict) and 'name' in product_id:
+                    item['name'] = product_id['name']
+        return items
+    except Exception as e:
+        print(f"Error enriching items with product names: {e}")
+        return items
 
 async def get_purchase_invoices():
     """Get all purchase invoices - items will be fetched separately by API endpoint"""
@@ -241,6 +263,9 @@ async def get_purchase_invoice_by_id(invoice_id):
             if not inv.get('items'):
                 items_from_table = await get_purchase_items_by_invoice(invoice_id)
                 inv['items'] = items_from_table if items_from_table else []
+            else:
+                # Enrich JSONB items with product names
+                inv['items'] = await enrich_items_with_product_names(inv['items'])
             return inv
         return None
     except Exception as e:
@@ -258,6 +283,9 @@ async def get_purchase_invoices_by_vendor(vendor_id):
                 if not inv.get('items'):
                     items_from_table = await get_purchase_items_by_invoice(inv['id'])
                     inv['items'] = items_from_table if items_from_table else []
+                else:
+                    # Enrich JSONB items with product names
+                    inv['items'] = await enrich_items_with_product_names(inv['items'])
                 result.append(inv)
         return result
     except Exception as e:
@@ -296,10 +324,15 @@ async def delete_purchase_invoice(invoice_id):
 # ============================================================================
 
 async def get_purchase_items(invoice_id):
-    """Get items for purchase invoice"""
+    """Get items for purchase invoice with product details"""
     try:
-        response = supabase.table("purchase_items").select("*,product_id(*)").eq("purchase_invoice_id", invoice_id).execute()
-        return response.data if response.data else []
+        response = supabase.table("purchase_items").select("*,product_id(name)").eq("purchase_invoice_id", invoice_id).execute()
+        items = response.data if response.data else []
+        # Flatten the product name from nested object
+        for item in items:
+            if isinstance(item.get('product_id'), dict) and 'name' in item['product_id']:
+                item['name'] = item['product_id']['name']
+        return items
     except Exception as e:
         print(f"Error fetching purchase items: {e}")
         return []
