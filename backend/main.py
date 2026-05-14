@@ -1522,7 +1522,7 @@ async def export_to_google_sheets():
 @app.get("/")
 async def serve_index():
     """Serve graftcare.html"""
-    return FileResponse(Path(__file__).parent.parent / "graftcare.html")
+    return FileResponse(Path(__file__).parent.parent / "graftcare1.html")
 
 @app.get("/main.js")
 async def serve_main_js():
